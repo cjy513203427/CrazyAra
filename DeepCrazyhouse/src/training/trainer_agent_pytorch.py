@@ -10,7 +10,9 @@ https://gitlab.com/jweil/PommerLearn/-/blob/master/pommerlearn/training/train_cn
 """
 
 import random
+import os
 import logging
+import glob
 from pathlib import Path
 import torch
 import torch.nn as nn
@@ -259,7 +261,6 @@ class TrainerAgentPytorch:
                                 return return_metrics_and_stop_training(self.k_steps, val_metric_values, self.k_steps_best,
                                                                         self.val_metric_values_best)
 
-
     def delete_previous_weights(self):
         """
         Delete previous weights in the "weights" folder to save space.
@@ -268,7 +269,7 @@ class TrainerAgentPytorch:
         files = glob.glob(self.tc.export_dir + 'weights/*')
         for f in files:
             os.remove(f)
-            
+
     def _get_train_loader(self, part_id):
         # load one chunk of the dataset from memory
         _, self.x_train, self.yv_train, self.yp_train, self.plys_to_end, _ = load_pgn_dataset(dataset_type="train",
