@@ -1,6 +1,12 @@
 # PyCharm
 .idea/
 
+# VSCode
+.vscode/
+
+# History folder
+.history/
+
 # Byte-compiled / optimized / DLL files
 # https://github.com/github/gitignore/blob/master/Python.gitignore
 __pycache__/
