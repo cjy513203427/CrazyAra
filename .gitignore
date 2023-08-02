@@ -143,5 +143,8 @@ sf_vs_sf_*.pgn
 # Build
 build-engine-Desktop_Qt*/
 
+# 3rd party
+engine/3rdparty/blaze
+
 # user
 *.txt.user
