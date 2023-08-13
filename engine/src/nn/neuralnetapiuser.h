@@ -41,16 +41,20 @@ protected:
 
     // inputPlanes stores the plane representation of all newly expanded nodes of a single mini-batch
     float* inputPlanes;
+
     // stores the corresponding value-Outputs and probability-Outputs of the nodes stored in the vector "newNodes"
     // sufficient memory according to the batch-size will be allocated in the constructor
     float* valueOutputs;
+
     float* probOutputs;
+
     float* auxiliaryOutputs;
 
 public:
     NeuralNetAPIUser(NeuralNetAPI* net);
     ~NeuralNetAPIUser();
     NeuralNetAPIUser(NeuralNetAPIUser&) = delete;
+	NeuralNetAPI* get_net() const;
 
     /**
      * @brief run_inference Runs inference of the allocated input planes for a given number of iterations.

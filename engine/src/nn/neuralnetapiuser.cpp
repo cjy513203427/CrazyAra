@@ -90,6 +90,11 @@ NeuralNetAPIUser::~NeuralNetAPIUser()
 #endif
 }
 
+NeuralNetAPI* NeuralNetAPIUser::get_net() const 
+{
+	return net;
+}
+
 void NeuralNetAPIUser::run_inference(uint_fast16_t iterations)
 {
     for (uint_fast16_t it = 0; it < iterations; ++it) {

@@ -44,12 +44,12 @@ MCTSAgentRandom::MCTSAgentRandom(NeuralNetAPI *netSingle, vector<unique_ptr<Neur
 
     }
 
-MCTSAgentRandom::~MCTSAgentRandom()
-{
-    for (auto searchThread : searchThreads) {
-        delete searchThread;
-    }
-}
+//MCTSAgentRandom::~MCTSAgentRandom()
+//{
+//    for (auto searchThread : searchThreads) {
+//        delete searchThread;
+//    }
+//}
 
 string MCTSAgentRandom::get_name() const
 {

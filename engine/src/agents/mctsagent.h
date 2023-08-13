@@ -52,7 +52,7 @@ class MCTSAgent : public Agent
 {
 public:
     SearchSettings* searchSettings;  // TODO: add "const" to searchSetting
-    vector<SearchThread*> searchThreads;
+    vector<unique_ptr<SearchThread>> searchThreads;
     unique_ptr<TimeManager> timeManager;
 
     shared_ptr<Node> rootNode;
@@ -86,7 +86,14 @@ public:
               vector<unique_ptr<NeuralNetAPI>>& netBatches,
               SearchSettings* searchSettings,
               PlaySettings* playSettings);
-    ~MCTSAgent();
+
+	MCTSAgent(NeuralNetAPI* netSingle,
+		vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall,
+		vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
+		SearchSettings* searchSettings,
+		PlaySettings* playSettings);
+
+    //~MCTSAgent();
     MCTSAgent(const MCTSAgent&) = delete;
     MCTSAgent& operator=(MCTSAgent const&) = delete;
 

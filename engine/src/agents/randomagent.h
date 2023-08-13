@@ -54,7 +54,7 @@ public:
               vector<unique_ptr<NeuralNetAPI>>& netBatches,
               SearchSettings* searchSettings,
               PlaySettings* playSettings);
-    ~MCTSAgentRandom();
+    //~MCTSAgentRandom();
     MCTSAgentRandom(const MCTSAgentRandom&) = delete;
     MCTSAgentRandom& operator=(MCTSAgentRandom const&) = delete;
 

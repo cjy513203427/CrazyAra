@@ -36,6 +36,7 @@
 
 
 size_t SearchThread::get_max_depth() const
+
 {
     return depthMax;
 }
@@ -60,6 +61,15 @@ SearchThread::SearchThread(NeuralNetAPI *netBatch, const SearchSettings* searchS
     trajectoryBuffer.reserve(DEPTH_INIT);
     actionsBuffer.reserve(DEPTH_INIT);
 }
+
+
+SearchThread::SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex) :
+	SearchThread(netSmallBatch, searchSettings, mapWithMutex)
+	
+{
+	nnLarge = make_unique<NeuralNetAPIUser>(netLargeBatch);
+}
+
 
 void SearchThread::set_root_node(Node *value)
 {
@@ -379,6 +389,7 @@ void SearchThread::thread_iteration()
 #ifndef SEARCH_UCT
     if (newNodes->size() != 0) {
         net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
+		nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
         set_nn_results_to_child_nodes();
     }
 #endif
@@ -386,7 +397,7 @@ void SearchThread::thread_iteration()
     backup_collisions();
 }
 
-void run_search_thread(SearchThread *t)
+void run_search_thread(unique_ptr<SearchThread> t)
 {
     t->set_is_running(true);
     t->reset_stats();

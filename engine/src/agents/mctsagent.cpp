@@ -53,17 +53,20 @@ MCTSAgent::MCTSAgent(NeuralNetAPI *netSingle, vector<unique_ptr<NeuralNetAPI>>& 
     mapWithMutex.hashTable.reserve(1e6);
 
     for (auto i = 0; i < searchSettings->threads; ++i) {
-        searchThreads.emplace_back(new SearchThread(netBatches[i].get(), searchSettings, &mapWithMutex));
+        searchThreads.emplace_back(make_unique<SearchThread>(netBatches[i].get(), searchSettings, &mapWithMutex));
     }
     timeManager = make_unique<TimeManager>(searchSettings->randomMoveFactor);
     generator = default_random_engine(r());
 }
 
-MCTSAgent::~MCTSAgent()
+MCTSAgent::MCTSAgent(NeuralNetAPI *netSingle, vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall, vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
+	SearchSettings* searchSettings, PlaySettings* playSettings) :
+	MCTSAgent(netSingle, netBatchesSmall, searchSettings, playSettings)
 {
-    for (auto searchThread : searchThreads) {
-        delete searchThread;
-    }
+	searchThreads.clear();
+	for (auto i = 0; i < searchSettings->threads; ++i) {
+		searchThreads.emplace_back(make_unique<SearchThread>(netBatchesSmall[i].get(), netBatchesLarge[i].get(), searchSettings, &mapWithMutex));
+	}
 }
 
 Node* MCTSAgent::get_opponents_next_root() const
@@ -343,7 +346,12 @@ void MCTSAgent::run_mcts_search()
         threads[i] = new thread(run_search_thread, searchThreads[i]);
     }
     int curMovetime = timeManager->get_time_for_move(searchLimits, rootState->side_to_move(), rootNode->plies_from_null()/2);
-    ThreadManagerData tData(rootNode.get(), searchThreads, evalInfo, lastValueEval);
+	vector <unique_ptr<SearchThread>> searchThreads_ptr;
+	for (int i = 0; i< searchThreads.size(); i++) 
+	{
+		searchThreads_ptr.emplace_back(searchThreads[i].get());
+	}
+    ThreadManagerData tData(rootNode.get(), searchThreads_ptr, evalInfo, lastValueEval);
     ThreadManagerInfo tInfo(searchSettings, searchLimits, overallNPS, rootState->side_to_move());
     ThreadManagerParams tParams(curMovetime, 250, is_game_sceneario(searchLimits), can_prolong_search(rootNode->plies_from_null()/2, timeManager->get_thresh_move()));
     threadManager = make_unique<ThreadManager>(&tData, &tInfo, &tParams);

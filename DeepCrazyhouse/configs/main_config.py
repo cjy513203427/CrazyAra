@@ -12,7 +12,7 @@ Copy and rename this file to main_config.py and adjust the paths accordingly.
 
 # define the default dir where the training data in plane representation is located
 # e.g. for supervised learning default_dir = "/data/planes/"
-default_dir = "D:/Jinyao/Masterarbeit/datasets/datasets/24k_dataset/default/planes"
+default_dir = "D:/Masterarbeit/datasets/datasets/24k_dataset/default/planes"
 
 if default_dir[-1] != "/":
     default_dir = default_dir + "/"

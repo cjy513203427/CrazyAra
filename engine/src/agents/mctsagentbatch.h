@@ -59,7 +59,7 @@ public:
               PlaySettings* playSettings,
               int iterations,
               bool splitNodes);
-    ~MCTSAgentBatch();
+    //~MCTSAgentBatch();
     MCTSAgentBatch(const MCTSAgentBatch&) = delete;
     MCTSAgentBatch& operator=(MCTSAgentBatch const&) = delete;
 

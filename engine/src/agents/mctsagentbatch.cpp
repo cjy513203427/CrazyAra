@@ -46,12 +46,12 @@ MCTSAgentBatch::MCTSAgentBatch(NeuralNetAPI *netSingle, vector<unique_ptr<Neural
         splitNodes = sN;
     }
 
-MCTSAgentBatch::~MCTSAgentBatch()
-{
-    for (auto searchThread : searchThreads) {
-        delete searchThread;
-    }
-}
+//MCTSAgentBatch::~MCTSAgentBatch()
+//{
+//    for (auto searchThread : searchThreads) {
+//        delete searchThread;
+//    }
+//}
 
 string MCTSAgentBatch::get_name() const
 {   

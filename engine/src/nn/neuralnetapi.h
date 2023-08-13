@@ -151,6 +151,8 @@ protected:
     // file names for the loaded model and its parameters
     string modelDir;
     string modelFilePath;
+	string smallModelFilePath;
+	string largeModelFilePath;
     string parameterFilePath;
 
     nn_api::NeuralNetDesign nnDesign;

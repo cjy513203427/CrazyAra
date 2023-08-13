@@ -81,6 +81,9 @@ private:
     size_t visitsPreSearch;
     uint_fast32_t terminalNodeCache;  // TODO: better add "const" classifier here is possible
     bool reachedTablebases;
+
+    // Pointer for large NN
+    unique_ptr<NeuralNetAPIUser> nnLarge;
 public:
     /**
      * @brief SearchThread
@@ -89,6 +92,15 @@ public:
      * @param MapWithMutex Handle to the hash table
      */
     SearchThread(NeuralNetAPI* netBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
+
+		/**
+	 * @brief SearchThread
+	 * @param netSmallBatch Network API object which provides the prediction of the neural network
+	   @param netLargeBatch Network API object which provides the prediction of the neural network
+	 * @param searchSettings Given settings for this search run
+	 * @param MapWithMutex Handle to the hash table
+	 */
+	SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
 
     /**
      * @brief create_mini_batch Creates a mini-batch of new unexplored nodes.
@@ -188,7 +200,7 @@ private:
     ChildIdx select_enhanced_move(Node* currentNode) const;
 };
 
-void run_search_thread(SearchThread *t);
+void run_search_thread(unique_ptr<SearchThread> t);
 
 void fill_nn_results(size_t batchIdx, bool isPolicyMap, const float* valueOutputs, const float* probOutputs, const float* auxiliaryOutputs, Node *node, size_t& tbHits, bool mirrorPolicy, const SearchSettings* searchSettings, bool isRootNodeTB);
 void node_post_process_policy(Node *node, float temperature, const SearchSettings* searchSettings);

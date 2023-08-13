@@ -53,7 +53,7 @@ public:
               SearchSettings* searchSettings,
               PlaySettings* playSettings
               );
-    ~MCTSAgentTrueSight();
+    //~MCTSAgentTrueSight();
     MCTSAgentTrueSight(const MCTSAgentTrueSight&) = delete;
     MCTSAgentTrueSight& operator=(MCTSAgentTrueSight const&) = delete;
 

@@ -44,12 +44,13 @@ MCTSAgentTrueSight::MCTSAgentTrueSight(NeuralNetAPI *netSingle, vector<unique_pt
         
     }
 
-MCTSAgentTrueSight::~MCTSAgentTrueSight()
-{
-    for (auto searchThread : searchThreads) {
-        delete searchThread;
-    }
-}
+//MCTSAgentTrueSight::~MCTSAgentTrueSight()
+//{
+//    for (auto searchThread : searchThreads) {
+//        delete searchThread;
+//    }
+//}
+
 
 string MCTSAgentTrueSight::get_name() const
 {   
