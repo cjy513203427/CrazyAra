@@ -60,8 +60,8 @@ public:
               int iterations,
               bool splitNodes);
     //~MCTSAgentBatch();
-    MCTSAgentBatch(const MCTSAgentBatch&) = delete;
-    MCTSAgentBatch& operator=(MCTSAgentBatch const&) = delete;
+    /*MCTSAgentBatch(const MCTSAgentBatch&) = delete;
+    MCTSAgentBatch& operator=(MCTSAgentBatch const&) = delete;*/
 
     string get_name() const override;
     void evaluate_board_state() override;

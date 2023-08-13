@@ -94,8 +94,8 @@ public:
 		PlaySettings* playSettings);
 
     //~MCTSAgent();
-    MCTSAgent(const MCTSAgent&) = delete;
-    MCTSAgent& operator=(MCTSAgent const&) = delete;
+    /*MCTSAgent(const MCTSAgent&) = delete;
+    MCTSAgent& operator=(MCTSAgent const&) = delete;*/
 
     void evaluate_board_state() override;
 

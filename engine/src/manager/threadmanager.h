@@ -48,7 +48,7 @@ struct ThreadManagerData {
     float lastValueEval;
 
     ThreadManagerData(const Node* rootNode, vector<unique_ptr<SearchThread>> searchThreads, EvalInfo* evalInfo, float lastValueEval) :
-        rootNode(rootNode), searchThreads(searchThreads), evalInfo(evalInfo), remainingMoveTimeMS(0), lastValueEval(lastValueEval)
+        rootNode(rootNode), searchThreads(move(searchThreads)), evalInfo(evalInfo), remainingMoveTimeMS(0), lastValueEval(lastValueEval)
     {}
 };
 

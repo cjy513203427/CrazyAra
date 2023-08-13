@@ -55,8 +55,8 @@ public:
               SearchSettings* searchSettings,
               PlaySettings* playSettings);
     //~MCTSAgentRandom();
-    MCTSAgentRandom(const MCTSAgentRandom&) = delete;
-    MCTSAgentRandom& operator=(MCTSAgentRandom const&) = delete;
+    //MCTSAgentRandom(const MCTSAgentRandom&) = delete;
+    //MCTSAgentRandom& operator=(MCTSAgentRandom const&) = delete;
 
     //void evaluate_board_state() override;
     string get_name() const override;

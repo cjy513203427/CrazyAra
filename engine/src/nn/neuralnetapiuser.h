@@ -53,7 +53,7 @@ protected:
 public:
     NeuralNetAPIUser(NeuralNetAPI* net);
     ~NeuralNetAPIUser();
-    NeuralNetAPIUser(NeuralNetAPIUser&) = delete;
+    //NeuralNetAPIUser(NeuralNetAPIUser&) = delete;
 	NeuralNetAPI* get_net() const;
 
     /**
