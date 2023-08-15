@@ -52,7 +52,7 @@ class MCTSAgent : public Agent
 {
 public:
     SearchSettings* searchSettings;  // TODO: add "const" to searchSetting
-    vector<unique_ptr<SearchThread>> searchThreads;
+    vector<SearchThread*> searchThreads;
     unique_ptr<TimeManager> timeManager;
 
     shared_ptr<Node> rootNode;
@@ -93,9 +93,9 @@ public:
 		SearchSettings* searchSettings,
 		PlaySettings* playSettings);
 
-    //~MCTSAgent();
-    /*MCTSAgent(const MCTSAgent&) = delete;
-    MCTSAgent& operator=(MCTSAgent const&) = delete;*/
+    ~MCTSAgent();
+    MCTSAgent(const MCTSAgent&) = delete;
+    MCTSAgent& operator=(MCTSAgent const&) = delete;
 
     void evaluate_board_state() override;
 

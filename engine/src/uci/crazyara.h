@@ -81,7 +81,10 @@ private:
     unique_ptr<RawNetAgent> rawAgent;
     unique_ptr<MCTSAgent> mctsAgent;
     unique_ptr<NeuralNetAPI> netSingle;
+    unique_ptr<NeuralNetAPI> netSingleLarge;
     vector<unique_ptr<NeuralNetAPI>> netBatches;
+    vector<unique_ptr<NeuralNetAPI>> netBatchesSmall;
+    vector<unique_ptr<NeuralNetAPI>> netBatchesLarge;
 #ifdef USE_RL
     unique_ptr<NeuralNetAPI> netSingleContender;
     unique_ptr<MCTSAgent> mctsAgentContender;
@@ -264,6 +267,7 @@ private:
     kBatch5_reducedNodes = 5,   // 5 MCTS agents with majority vote at the end. The amount of nodes are splitted between all agents
     kTrueSight = 6,             // True Sight Agent, which uses the perfect information state instead of the imperfect information state
     kRandom = 7,                // plays random legal moves
+	kSmallLarge = 8				// Using small and large NN
 };
 
     /**
@@ -276,7 +280,8 @@ private:
      * @param type Which type of agent should be used, default is 0. 
      * @return Pointer to the new MCTSAgent object
      */
-    unique_ptr<MCTSAgent> create_new_mcts_agent(NeuralNetAPI* netSingle, vector<unique_ptr<NeuralNetAPI>>& netBatches, SearchSettings* searchSettings, MCTSAgentType type = MCTSAgentType::kDefault);
+    unique_ptr<MCTSAgent> create_new_mcts_agent(NeuralNetAPI* netSingle, NeuralNetAPI* netSingleLarge, vector<unique_ptr<NeuralNetAPI>>& netBatches, vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall, vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
+		SearchSettings* searchSettings, MCTSAgentType type = MCTSAgentType::kDefault);
 
     /**
      * @brief create_new_net_single Factory to create and load a new model from a given directory

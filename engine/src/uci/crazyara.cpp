@@ -573,9 +573,17 @@ bool CrazyAra::is_ready()
 #endif
         netSingle = create_new_net_single(string(Options["Model_Directory"]));
         netSingle->validate_neural_network();
+		netSingleLarge = create_new_net_single(string(Options["Large_Model_Directory"]));
+		netSingleLarge->validate_neural_network();
         netBatches = create_new_net_batches(string(Options["Model_Directory"]));
-        netBatches.front()->validate_neural_network();
-        mctsAgent = create_new_mcts_agent(netSingle.get(), netBatches, &searchSettings);
+        netBatches.front()->validate_neural_network();        
+		
+		netBatchesSmall = create_new_net_batches(string(Options["Small_Model_Directory"]));
+        netBatchesSmall.front()->validate_neural_network();
+
+		netBatchesLarge = create_new_net_batches(string(Options["Large_Model_Directory"]));
+		netBatchesLarge.front()->validate_neural_network();
+        mctsAgent = create_new_mcts_agent(netSingle.get(), netSingleLarge.get(), netBatches, netBatchesSmall, netBatchesLarge, &searchSettings, MCTSAgentType::kSmallLarge);
         rawAgent = make_unique<RawNetAgent>(netSingle.get(), &playSettings, false);
         StateConstants::init(mctsAgent->is_policy_map());
         timeoutThread.kill();
@@ -665,7 +673,8 @@ void CrazyAra::set_uci_option(istringstream &is, StateObj& state)
     }
 }
 
-unique_ptr<MCTSAgent> CrazyAra::create_new_mcts_agent(NeuralNetAPI* netSingle, vector<unique_ptr<NeuralNetAPI>>& netBatches, SearchSettings* searchSettings, MCTSAgentType type)
+unique_ptr<MCTSAgent> CrazyAra::create_new_mcts_agent(NeuralNetAPI* netSingle, NeuralNetAPI* netSingleLarge, vector<unique_ptr<NeuralNetAPI>>& netBatches, vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall, vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
+	SearchSettings* searchSettings, MCTSAgentType type)
 {
     switch (type) {
     case MCTSAgentType::kDefault:
@@ -691,6 +700,8 @@ unique_ptr<MCTSAgent> CrazyAra::create_new_mcts_agent(NeuralNetAPI* netSingle, v
     case MCTSAgentType::kRandom:
         info_string("TYP 7 -> Random");
         return make_unique<MCTSAgentRandom>(netSingle, netBatches, searchSettings, &playSettings);
+	case MCTSAgentType::kSmallLarge:
+		return make_unique<MCTSAgent>(netSingleLarge, netBatchesSmall, netBatchesLarge, searchSettings, &playSettings);
     default:
       info_string("Unknown MCTSAgentType");
       return nullptr;

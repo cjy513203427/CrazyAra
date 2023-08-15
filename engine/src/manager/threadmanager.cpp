@@ -171,11 +171,11 @@ void ThreadManager::stop_search()
     stop_search_threads(tData->searchThreads);
 }
 
-void stop_search_threads(vector <unique_ptr<SearchThread>>& searchThreads)
+void stop_search_threads(vector <SearchThread*>& searchThreads)
 {
-    for (auto& searchThread : searchThreads) {
-        searchThread->stop();
-    }
+	for (int i = 0; i < searchThreads.size(); i++) {
+		searchThreads[i]->stop();
+	}
 }
 
 bool can_prolong_search(size_t curMoveNumber, size_t expectedGameLength)
@@ -183,12 +183,12 @@ bool can_prolong_search(size_t curMoveNumber, size_t expectedGameLength)
     return curMoveNumber < expectedGameLength;
 }
 
-size_t get_avg_depth(const  vector<unique_ptr<SearchThread>>& searchThreads)
+size_t get_avg_depth(const  vector<SearchThread*>& searchThreads)
 {
     return 0; // TODO
 }
 
-size_t get_max_depth(const  vector<unique_ptr<SearchThread>>& searchThreads)
+size_t get_max_depth(const  vector<SearchThread*>& searchThreads)
 {
     size_t maxDepth = 0;
 	for (int i = 0; i < searchThreads.size(); i++) {
@@ -197,7 +197,7 @@ size_t get_max_depth(const  vector<unique_ptr<SearchThread>>& searchThreads)
     return maxDepth;
 }
 
-size_t get_tb_hits(const  vector<unique_ptr<SearchThread>>& searchThreads)
+size_t get_tb_hits(const  vector<SearchThread*>& searchThreads)
 {
     size_t tbHits = 0;
 	for (int i = 0; i < searchThreads.size(); i++) {

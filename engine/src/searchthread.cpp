@@ -397,7 +397,7 @@ void SearchThread::thread_iteration()
     backup_collisions();
 }
 
-void run_search_thread(unique_ptr<SearchThread> t)
+void run_search_thread(SearchThread* t)
 {
     t->set_is_running(true);
     t->reset_stats();
