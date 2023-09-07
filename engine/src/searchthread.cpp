@@ -454,6 +454,43 @@ ChildIdx SearchThread::select_enhanced_move(Node* currentNode) const {
     return uint16_t(-1);
 }
 
+void SearchThread::mpv_mcts(StateObj* state, unique_ptr<NeuralNetAPIUser> f_Small, unique_ptr<NeuralNetAPIUser> f_Large, size_t b_Small, size_t b_Large){
+    // TODO: Use vector of integer numbers, can use prob sampling
+    int list = randomly_select(b_Small, b_Small + b_Large);
+    for (int i=0; i<b_Small + b_Large; i++){
+        if(i == list){
+            StateObj* state_leaf = select_unevaluated_leafState_puct();
+            net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
+            // TODO: (p, v) = f_S (s_leaf)?
+            update(state_leaf);
+        }else{
+            StateObj* state_leaf = select_unevaluated_leafState_priority();
+            nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
+            update(state_leaf);
+        }
+    }
+}
+
+// TODO: Should I use random_playout method?
+int SearchThread::randomly_select(int lowerbound, int upperbound){  
+    std::random_device rd;  
+    std::mt19937 gen(rd());  
+    std::uniform_int_distribution<> dis(lowerbound, upperbound);  
+    return dis(gen);  
+}  
+
+StateObj* SearchThread::select_unevaluated_leafState_puct(){
+
+}
+
+StateObj* SearchThread::select_unevaluated_leafState_priority(){
+
+}
+
+void SearchThread::update(StateObj* leaft_state){
+
+}
+
 void node_assign_value(Node *node, const float* valueOutputs, size_t& tbHits, size_t batchIdx, bool isRootNodeTB)
 {
 #ifdef MCTS_TB_SUPPORT

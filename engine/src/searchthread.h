@@ -95,8 +95,8 @@ public:
 
 		/**
 	 * @brief SearchThread
-	 * @param netSmallBatch Network API object which provides the prediction of the neural network
-	   @param netLargeBatch Network API object which provides the prediction of the neural network
+	 * @param netSmallBatch Network API object which provides the prediction of the small neural network
+	   @param netLargeBatch Network API object which provides the prediction of the large neural network
 	 * @param searchSettings Given settings for this search run
 	 * @param MapWithMutex Handle to the hash table
 	 */
@@ -198,6 +198,43 @@ private:
      * @return uint_16_t(-1) for no action else custom idx
      */
     ChildIdx select_enhanced_move(Node* currentNode) const;
+    
+    /**
+     * @brief MPV-MCTS Algorithm
+     * @param state state
+     * @param f_Small small network
+     * @param f_Large large network
+     * @param b_Small budget for small NN
+     * @param b_Large budget for large NN
+    */
+    void mpv_mcts(StateObj* state, unique_ptr<NeuralNetAPIUser> f_Small, unique_ptr<NeuralNetAPIUser> f_Large, size_t b_Small, size_t b_Large);
+
+    /**
+     * @brief random select between lowerbound and upperbound
+     * @param lowerbound lower bound
+     * @param upperbound upper bound
+    */
+    int randomly_select(int lowerbound, int upperbound);
+
+    /**
+     * @brief select unexpanded leaf state by PUCT
+     * u_{PUCT}(s, a) = P(s, a) * \frac{sqrt(N(s))}{N(s, a)}
+     * @param 
+    */
+    StateObj* select_unevaluated_leafState_puct();
+
+    /**
+     * @brief select unexpanded leaf state by priority
+     * @param 
+    */
+    StateObj* select_unevaluated_leafState_priority();
+
+    /**
+     * @brief update nodes
+     * @param leaft_state state of leaf
+    */
+    void update(StateObj* leaft_state);
+
 };
 
 void run_search_thread(SearchThread* t);
