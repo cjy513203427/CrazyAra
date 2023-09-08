@@ -213,15 +213,16 @@ private:
      * @brief random select between lowerbound and upperbound
      * @param lowerbound lower bound
      * @param upperbound upper bound
+     * @param num_selections selected number
     */
-    int randomly_select(int lowerbound, int upperbound);
+    vector<int> randomly_select(int lowerbound, int upperbound, int num_selections);
 
     /**
      * @brief select unexpanded leaf state by PUCT
      * u_{PUCT}(s, a) = P(s, a) * \frac{sqrt(N(s))}{N(s, a)}
-     * @param 
+     * @param description Return type with NodeDescription
     */
-    StateObj* select_unevaluated_leafState_puct();
+    StateObj* select_unevaluated_leafState_puct(NodeDescription& description);
 
     /**
      * @brief select unexpanded leaf state by priority

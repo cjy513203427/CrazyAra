@@ -455,32 +455,51 @@ ChildIdx SearchThread::select_enhanced_move(Node* currentNode) const {
 }
 
 void SearchThread::mpv_mcts(StateObj* state, unique_ptr<NeuralNetAPIUser> f_Small, unique_ptr<NeuralNetAPIUser> f_Large, size_t b_Small, size_t b_Large){
-    // TODO: Use vector of integer numbers, can use prob sampling
-    int list = randomly_select(b_Small, b_Small + b_Large);
+    vector<int> list = randomly_select(b_Small, b_Small + b_Large, 4);
+    NodeDescription description;
     for (int i=0; i<b_Small + b_Large; i++){
-        if(i == list){
-            StateObj* state_leaf = select_unevaluated_leafState_puct();
+        // if i in list
+        vector<int>::iterator it = find(list.begin(), list.end(), i);
+        if(it == list.end()){
+            // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_S)
+            StateObj* state_leaf = select_unevaluated_leafState_puct(description);
             net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
-            // TODO: (p, v) = f_S (s_leaf)?
+            // (p, v) = f_S (s_leaf)
+            set_nn_results_to_child_nodes();
+            // Update(T_S, s_leaf, (p, v))
             update(state_leaf);
         }else{
+            // S_leaf = SelectUnevaluatedLeafStateByPriority(T_L)
             StateObj* state_leaf = select_unevaluated_leafState_priority();
             nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
+            if(rootNode->get_real_visits() == 0)
+                // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_L)
+                StateObj* state_leaf = select_unevaluated_leafState_puct(description);
+            // (p, v) = f_L (s_leaf)
+            set_nn_results_to_child_nodes();
+            // Update(T_L, s_leaf, (p, v))
             update(state_leaf);
         }
     }
 }
 
-// TODO: Should I use random_playout method?
-int SearchThread::randomly_select(int lowerbound, int upperbound){  
-    std::random_device rd;  
-    std::mt19937 gen(rd());  
-    std::uniform_int_distribution<> dis(lowerbound, upperbound);  
-    return dis(gen);  
+vector<int> SearchThread::randomly_select(int lowerbound, int upperbound, int num_selections){  
+    // seed
+    random_device rd;
+    mt19937 gen(rd());
+    // generate random num
+    uniform_int_distribution<> dis(lowerbound, upperbound); 
+  
+    vector<int> selections;  
+    for (int i = 0; i < num_selections; ++i) {  
+        selections.push_back(dis(gen));  
+    }  
+  
+    return selections; 
 }  
 
-StateObj* SearchThread::select_unevaluated_leafState_puct(){
-
+StateObj* SearchThread::select_unevaluated_leafState_puct(NodeDescription& description){
+    get_new_child_to_evaluate(description);
 }
 
 StateObj* SearchThread::select_unevaluated_leafState_priority(){
@@ -488,7 +507,7 @@ StateObj* SearchThread::select_unevaluated_leafState_priority(){
 }
 
 void SearchThread::update(StateObj* leaft_state){
-
+    backup_value_outputs();
 }
 
 void node_assign_value(Node *node, const float* valueOutputs, size_t& tbHits, size_t batchIdx, bool isRootNodeTB)
