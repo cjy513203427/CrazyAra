@@ -55,6 +55,7 @@ class SearchThread : public NeuralNetAPIUser
 {
 private:
     Node* rootNode;
+    Node* rootNodeLarge;
     StateObj* rootState;
     unique_ptr<StateObj> newState;
 
@@ -107,8 +108,15 @@ public:
      * Terminal node are immediatly backpropagated without requesting the NN.
      * If the node was found in the hash-table it's value is backpropagated without requesting the NN.
      * If a collision occurs (the same node was selected multiple times), it will be added to the collisionNodes vector
+     * @param rootNode root node
      */
-    void create_mini_batch();
+    void create_mini_batch(Node* rootNode);
+
+    /**
+     * @brief One simulation for a single node's expansion
+     * @param rootNode root node
+    */
+    void simulation_puct(Node* rootNode, size_t &numTerminalNodes);
 
     /**
      * @brief thread_iteration Runs multiple mcts-rollouts as long as a new batch is filled
@@ -187,7 +195,7 @@ private:
      * @param description Output struct which holds information what type of node it is
      * @return Pointer to next child to evaluate (can also be terminal or tranposition node in which case no NN eval is required)
      */
-    Node* get_new_child_to_evaluate(NodeDescription& description);
+    Node* get_new_child_to_evaluate(NodeDescription& description, Node* rootNode);
 
     void backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories);
     void backup_values(FixedVector<float>* values, vector<Trajectory>& trajectories);
@@ -207,7 +215,7 @@ private:
      * @param b_Small budget for small NN
      * @param b_Large budget for large NN
     */
-    void mpv_mcts(StateObj* state, unique_ptr<NeuralNetAPIUser> f_Small, unique_ptr<NeuralNetAPIUser> f_Large, size_t b_Small, size_t b_Large);
+    void mpv_mcts(size_t b_Small, size_t b_Large);
 
     /**
      * @brief random select between lowerbound and upperbound
@@ -222,7 +230,7 @@ private:
      * u_{PUCT}(s, a) = P(s, a) * \frac{sqrt(N(s))}{N(s, a)}
      * @param description Return type with NodeDescription
     */
-    StateObj* select_unevaluated_leafState_puct(NodeDescription& description);
+    StateObj* select_unevaluated_leafState_puct(Node* rootNode);
 
     /**
      * @brief select unexpanded leaf state by priority
@@ -234,7 +242,7 @@ private:
      * @brief update nodes
      * @param leaft_state state of leaf
     */
-    void update(StateObj* leaft_state);
+    void update(NodeDescription& description, StateObj* leaft_state);
 
 };
 

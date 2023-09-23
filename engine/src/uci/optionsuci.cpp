@@ -73,7 +73,8 @@ void OptionsUCI::init(OptionsMap &o)
     o["Batch_Size"]                    << Option(16, 1, 8192);
 #else
 #ifdef MODE_CHESS
-    o["Batch_Size"]                    << Option(64, 1, 8192);
+    // o["Batch_Size"]                    << Option(64, 1, 8192);
+    o["Batch_Size"]                    << Option(1, 1, 8192);
 #else
     o["Batch_Size"]                    << Option(16, 1, 8192);
 #endif
@@ -165,7 +166,8 @@ void OptionsUCI::init(OptionsMap &o)
 #ifdef SUPPORT960
     o["UCI_Chess960"]                  << Option(false);
 #endif
-    o["Search_Type"]                   << Option("mcgs", {"mcgs", "mcts"});
+    // o["Search_Type"]                   << Option("mcgs", {"mcgs", "mcts", "mpv_mcts"});
+    o["Search_Type"]                   << Option("mpv_mcts", {"mcgs", "mcts", "mpv_mcts"});
     o["Search_Player_Mode"]            << Option("two_player", {"two_player", "single_player"});
 #ifdef USE_RL
     o["Simulations"]                   << Option(3200, 0, 99999999);
@@ -240,7 +242,8 @@ void OptionsUCI::setoption(istringstream &is, int& variant, StateObj& state)
             if (value.find((string)Options["UCI_Variant"]) == std::string::npos) {
                 info_string_important("The Model_Directory must have the active UCI_Variant", string("'")+(string)Options["UCI_Variant"]+string("'"), "in its filepath");
                 return;
-            }
+            }.
+            
         }
 #endif
         Options[name] = value;

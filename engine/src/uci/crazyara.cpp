@@ -715,6 +715,7 @@ void CrazyAra::init_search_settings()
     searchSettings.threads = Options["Threads"] * get_num_gpus(Options);
     searchSettings.batchSize = Options["Batch_Size"];
     searchSettings.useMCGS = Options["Search_Type"] == "mcgs";
+    searchSettings.useMPVMCTS = Options["Search_Type"] == "mpv_mcts";
     if (Options["Search_Player_Mode"] == "two_player") {
         searchSettings.searchPlayerMode = MODE_TWO_PLAYER;
     }

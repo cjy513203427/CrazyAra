@@ -54,6 +54,7 @@ struct SearchSettings
 //    bool enhanceCaptures;   currently not support
 //    bool useFutureQValues;  currently not supported
     bool useMCGS;
+    bool useMPVMCTS;
     float cpuctInit;
     float cpuctBase;
     float uInit;

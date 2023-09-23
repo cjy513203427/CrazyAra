@@ -166,7 +166,7 @@ Node* SearchThread::get_starting_node(Node* currentNode, NodeDescription& descri
     return currentNode;
 }
 
-Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description)
+Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description, Node* rootNode)
 {
     description.depth = 0;
     Node* currentNode = rootNode;
@@ -348,7 +348,7 @@ size_t SearchThread::get_avg_depth()
     return size_t(double(depthSum) / (rootNode->get_visits() - visitsPreSearch) + 0.5);
 }
 
-void SearchThread::create_mini_batch()
+void SearchThread::create_mini_batch(Node* rootNode)
 {
     // select nodes to add to the mini-batch
     NodeDescription description;
@@ -359,42 +359,75 @@ void SearchThread::create_mini_batch()
            !transpositionValues->is_full() &&
            numTerminalNodes < terminalNodeCache) {
 
-        trajectoryBuffer.clear();
-        actionsBuffer.clear();
-        Node* newNode = get_new_child_to_evaluate(description);
-        depthSum += description.depth;
-        depthMax = max(depthMax, description.depth);
+            simulation_puct(rootNode, numTerminalNodes);
 
-        if(description.type == NODE_TERMINAL) {
-            ++numTerminalNodes;
-            backup_value<true>(newNode->get_value(), searchSettings, trajectoryBuffer, searchSettings->mctsSolver);
-        }
-        else if (description.type == NODE_COLLISION) {
-            // store a pointer to the collision node in order to revert the virtual loss of the forward propagation
-            collisionTrajectories.emplace_back(trajectoryBuffer);
-        }
-        else if (description.type == NODE_TRANSPOSITION) {
-            transpositionTrajectories.emplace_back(trajectoryBuffer);
-        }
-        else {  // NODE_NEW_NODE
-            newNodes->add_element(newNode);
-            newTrajectories.emplace_back(trajectoryBuffer);
-        }
+        // trajectoryBuffer.clear();
+        // actionsBuffer.clear();
+        // Node* newNode = get_new_child_to_evaluate(description, rootNode);
+        // depthSum += description.depth;
+        // depthMax = max(depthMax, description.depth);
+
+        // if(description.type == NODE_TERMINAL) {
+        //     ++numTerminalNodes;
+        //     backup_value<true>(newNode->get_value(), searchSettings, trajectoryBuffer, searchSettings->mctsSolver);
+        // }
+        // else if (description.type == NODE_COLLISION) {
+        //     // store a pointer to the collision node in order to revert the virtual loss of the forward propagation
+        //     collisionTrajectories.emplace_back(trajectoryBuffer);
+        // }
+        // else if (description.type == NODE_TRANSPOSITION) {
+        //     transpositionTrajectories.emplace_back(trajectoryBuffer);
+        // }
+        // else {  // NODE_NEW_NODE
+        //     newNodes->add_element(newNode);
+        //     newTrajectories.emplace_back(trajectoryBuffer);
+        // }
+    }
+}
+
+void SearchThread::simulation_puct(Node* rootNode, size_t &numTerminalNodes){
+    NodeDescription description;
+    trajectoryBuffer.clear();
+    actionsBuffer.clear();
+    Node* newNode = get_new_child_to_evaluate(description, rootNode);
+    depthSum += description.depth;
+    depthMax = max(depthMax, description.depth);
+
+    if(description.type == NODE_TERMINAL) {
+        ++numTerminalNodes;
+        backup_value<true>(newNode->get_value(), searchSettings, trajectoryBuffer, searchSettings->mctsSolver);
+    }
+    else if (description.type == NODE_COLLISION) {
+        // store a pointer to the collision node in order to revert the virtual loss of the forward propagation
+        collisionTrajectories.emplace_back(trajectoryBuffer);
+    }
+    else if (description.type == NODE_TRANSPOSITION) {
+        transpositionTrajectories.emplace_back(trajectoryBuffer);
+    }
+    else {  // NODE_NEW_NODE
+        newNodes->add_element(newNode);
+        newTrajectories.emplace_back(trajectoryBuffer);
     }
 }
 
 void SearchThread::thread_iteration()
 {
-    create_mini_batch();
-#ifndef SEARCH_UCT
-    if (newNodes->size() != 0) {
-        net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
-		nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
-        set_nn_results_to_child_nodes();
+    if(searchSettings->useMPVMCTS){
+        mpv_mcts(5, 0);
+    }else{
+        create_mini_batch(rootNode);
+        #ifndef SEARCH_UCT
+        cout<<"newNodes->size():"<<newNodes->size()<<endl;
+        if (newNodes->size() != 0) {
+            net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
+            set_nn_results_to_child_nodes();
+            
+        }
+        #endif
+        backup_value_outputs();
+        backup_collisions();
     }
-#endif
-    backup_value_outputs();
-    backup_collisions();
+
 }
 
 void run_search_thread(SearchThread* t)
@@ -454,31 +487,33 @@ ChildIdx SearchThread::select_enhanced_move(Node* currentNode) const {
     return uint16_t(-1);
 }
 
-void SearchThread::mpv_mcts(StateObj* state, unique_ptr<NeuralNetAPIUser> f_Small, unique_ptr<NeuralNetAPIUser> f_Large, size_t b_Small, size_t b_Large){
+void SearchThread::mpv_mcts(size_t b_Small, size_t b_Large){
     vector<int> list = randomly_select(b_Small, b_Small + b_Large, 4);
     NodeDescription description;
     for (int i=0; i<b_Small + b_Large; i++){
+        actionsBuffer.clear();
+        trajectoryBuffer.clear();
         // if i in list
         vector<int>::iterator it = find(list.begin(), list.end(), i);
         if(it == list.end()){
             // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_S)
-            StateObj* state_leaf = select_unevaluated_leafState_puct(description);
+            StateObj* state_leaf = select_unevaluated_leafState_puct(rootNode);
             net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
             // (p, v) = f_S (s_leaf)
             set_nn_results_to_child_nodes();
             // Update(T_S, s_leaf, (p, v))
-            update(state_leaf);
+            update(description, state_leaf);
         }else{
             // S_leaf = SelectUnevaluatedLeafStateByPriority(T_L)
             StateObj* state_leaf = select_unevaluated_leafState_priority();
             nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
             if(rootNode->get_real_visits() == 0)
                 // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_L)
-                StateObj* state_leaf = select_unevaluated_leafState_puct(description);
+                StateObj* state_leaf = select_unevaluated_leafState_puct(rootNodeLarge);
             // (p, v) = f_L (s_leaf)
             set_nn_results_to_child_nodes();
             // Update(T_L, s_leaf, (p, v))
-            update(state_leaf);
+            update(description, state_leaf);
         }
     }
 }
@@ -498,16 +533,18 @@ vector<int> SearchThread::randomly_select(int lowerbound, int upperbound, int nu
     return selections; 
 }  
 
-StateObj* SearchThread::select_unevaluated_leafState_puct(NodeDescription& description){
-    get_new_child_to_evaluate(description);
+StateObj* SearchThread::select_unevaluated_leafState_puct(Node* rootNode){
+    size_t num_loop = 0;
+    simulation_puct(rootNode, num_loop);
 }
 
 StateObj* SearchThread::select_unevaluated_leafState_priority(){
 
 }
 
-void SearchThread::update(StateObj* leaft_state){
+void SearchThread::update(NodeDescription& description, StateObj* leaft_state){
     backup_value_outputs();
+    backup_collisions();
 }
 
 void node_assign_value(Node *node, const float* valueOutputs, size_t& tbHits, size_t batchIdx, bool isRootNodeTB)
