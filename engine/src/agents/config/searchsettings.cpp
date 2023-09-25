@@ -37,6 +37,7 @@ SearchSettings::SearchSettings():
         verbose(true),
         epsilonChecksCounter(100),
         useMCGS(true),
+        useMPVMCTS(true),
         cpuctInit(2.5f),
         cpuctBase(19652.0f),
         uInit(1.0f),

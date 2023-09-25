@@ -69,7 +69,20 @@ MCTSAgent::~MCTSAgent()
 MCTSAgent::MCTSAgent(NeuralNetAPI *netSingle, vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall, vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
 	SearchSettings* searchSettings, PlaySettings* playSettings) :
 	MCTSAgent(netSingle, netBatchesSmall, searchSettings, playSettings)
+
 {
+    this->netSingleLarge = nullptr;
+	searchThreads.clear();
+	for (auto i = 0; i < searchSettings->threads; ++i) {
+		searchThreads.emplace_back(new SearchThread(netBatchesSmall[i].get(), netBatchesLarge[i].get(), searchSettings, &mapWithMutex));
+	}
+}
+
+MCTSAgent::MCTSAgent(NeuralNetAPI *netSingle, NeuralNetAPI* netSingleLarge, vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall, vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
+	SearchSettings* searchSettings, PlaySettings* playSettings) :
+	MCTSAgent(netSingle, netBatchesSmall, searchSettings, playSettings)
+{
+    this->netSingleLarge = netSingleLarge;
 	searchThreads.clear();
 	for (auto i = 0; i < searchSettings->threads; ++i) {
 		searchThreads.emplace_back(new SearchThread(netBatchesSmall[i].get(), netBatchesLarge[i].get(), searchSettings, &mapWithMutex));
@@ -137,7 +150,14 @@ size_t MCTSAgent::init_root_node(StateObj *state)
         info_string(nodesPreSearch, "nodes of former tree will be reused");
     }
     else {
-        create_new_root_node(state);
+        if(netSingleLarge!=nullptr){
+            std::cout<< "net->get_version()"<< version_to_string(net->get_version()) <<std::endl;
+            std::cout<< "netSingleLarge->get_version()"<< version_to_string(netSingleLarge->get_version()) <<std::endl;
+            rootNodeLarge = create_new_root_node(state, netSingleLarge);
+        }
+        
+        rootNode = create_new_root_node(state, net);
+
         nodesPreSearch = 0;
     }
     reachedTablebases = rootNode->is_tablebase() || reachedTablebases;
@@ -174,31 +194,33 @@ shared_ptr<Node> MCTSAgent::get_root_node_from_tree(StateObj *state)
     return nullptr;
 }
 
-void MCTSAgent::set_root_node_predictions()
+void MCTSAgent::set_root_node_predictions(NeuralNetAPI *net, Node *rootNode)
 {
     state->get_state_planes(true, inputPlanes, net->get_version());
     net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
     size_t tbHits = 0;
-    fill_nn_results(0, net->is_policy_map(), valueOutputs, probOutputs, auxiliaryOutputs, rootNode.get(), tbHits,
+    fill_nn_results(0, net->is_policy_map(), valueOutputs, probOutputs, auxiliaryOutputs, rootNode, tbHits,
                     rootState->mirror_policy(state->side_to_move()), searchSettings, rootNode->is_tablebase());
 }
 
-void MCTSAgent::create_new_root_node(StateObj* state)
+shared_ptr<Node> MCTSAgent::create_new_root_node(StateObj* state, NeuralNetAPI *net)
 {
     info_string("create new tree");
 #ifdef MCTS_STORE_STATES
-    rootNode = make_shared<Node>(state->clone(), searchSettings);
+    shared_ptr<Node>  rootNode = make_shared<Node>(state->clone(), searchSettings);
 #else
-    rootNode = make_shared<Node>(state, searchSettings);
+    shared_ptr<Node> rootNode = make_shared<Node>(state, searchSettings);
 #endif
 #ifdef SEARCH_UCT
     unique_ptr<StateObj> newState = unique_ptr<StateObj>(state->clone());
     rootNode->set_value(newState->random_rollout());
     rootNode->enable_has_nn_results();
 #else
-    set_root_node_predictions();
+    set_root_node_predictions(net, rootNode.get());
 #endif
     rootNode->prepare_node_for_visits();
+
+    return rootNode;
 }
 
 void MCTSAgent::delete_old_tree()
@@ -347,6 +369,10 @@ void MCTSAgent::run_mcts_search()
     thread** threads = new thread*[searchSettings->threads];
     for (size_t i = 0; i < searchSettings->threads; ++i) {
         searchThreads[i]->set_root_node(rootNode.get());
+
+        if(netSingleLarge!=nullptr){
+            searchThreads[i]->set_root_node_large(rootNodeLarge.get());
+        }
         searchThreads[i]->set_root_state(rootState.get());
         searchThreads[i]->set_search_limits(searchLimits);
         searchThreads[i]->set_reached_tablebases(reachedTablebases);

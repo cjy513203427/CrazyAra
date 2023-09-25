@@ -77,6 +77,13 @@ void SearchThread::set_root_node(Node *value)
     visitsPreSearch = rootNode->get_visits();
 }
 
+void SearchThread::set_root_node_large(Node *value)
+{
+    rootNodeLarge = value;
+    visitsPreSearch = rootNodeLarge->get_visits();
+    
+}
+
 void SearchThread::set_search_limits(SearchLimits *s)
 {
     searchLimits = s;
@@ -358,30 +365,7 @@ void SearchThread::create_mini_batch(Node* rootNode)
            collisionTrajectories.size() != searchSettings->batchSize &&
            !transpositionValues->is_full() &&
            numTerminalNodes < terminalNodeCache) {
-
-            simulation_puct(rootNode, numTerminalNodes);
-
-        // trajectoryBuffer.clear();
-        // actionsBuffer.clear();
-        // Node* newNode = get_new_child_to_evaluate(description, rootNode);
-        // depthSum += description.depth;
-        // depthMax = max(depthMax, description.depth);
-
-        // if(description.type == NODE_TERMINAL) {
-        //     ++numTerminalNodes;
-        //     backup_value<true>(newNode->get_value(), searchSettings, trajectoryBuffer, searchSettings->mctsSolver);
-        // }
-        // else if (description.type == NODE_COLLISION) {
-        //     // store a pointer to the collision node in order to revert the virtual loss of the forward propagation
-        //     collisionTrajectories.emplace_back(trajectoryBuffer);
-        // }
-        // else if (description.type == NODE_TRANSPOSITION) {
-        //     transpositionTrajectories.emplace_back(trajectoryBuffer);
-        // }
-        // else {  // NODE_NEW_NODE
-        //     newNodes->add_element(newNode);
-        //     newTrajectories.emplace_back(trajectoryBuffer);
-        // }
+        simulation_puct(rootNode, numTerminalNodes);
     }
 }
 
@@ -416,6 +400,7 @@ void SearchThread::thread_iteration()
         mpv_mcts(5, 0);
     }else{
         create_mini_batch(rootNode);
+        create_mini_batch(rootNodeLarge);
         #ifndef SEARCH_UCT
         cout<<"newNodes->size():"<<newNodes->size()<<endl;
         if (newNodes->size() != 0) {
@@ -529,6 +514,7 @@ vector<int> SearchThread::randomly_select(int lowerbound, int upperbound, int nu
     for (int i = 0; i < num_selections; ++i) {  
         selections.push_back(dis(gen));  
     }  
+  
   
     return selections; 
 }  

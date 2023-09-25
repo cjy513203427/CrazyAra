@@ -583,7 +583,10 @@ bool CrazyAra::is_ready()
 
 		netBatchesLarge = create_new_net_batches(string(Options["Large_Model_Directory"]));
 		netBatchesLarge.front()->validate_neural_network();
-        mctsAgent = create_new_mcts_agent(netSingle.get(), netSingleLarge.get(), netBatches, netBatchesSmall, netBatchesLarge, &searchSettings, MCTSAgentType::kSmallLarge);
+
+        MCTSAgentType type = searchSettings.useMPVMCTS ? MCTSAgentType::kSmallLarge : MCTSAgentType::kDefault;
+
+        mctsAgent = create_new_mcts_agent(netSingle.get(), netSingleLarge.get(), netBatches, netBatchesSmall, netBatchesLarge, &searchSettings, type);
         rawAgent = make_unique<RawNetAgent>(netSingle.get(), &playSettings, false);
         StateConstants::init(mctsAgent->is_policy_map());
         timeoutThread.kill();
@@ -701,7 +704,7 @@ unique_ptr<MCTSAgent> CrazyAra::create_new_mcts_agent(NeuralNetAPI* netSingle, N
         info_string("TYP 7 -> Random");
         return make_unique<MCTSAgentRandom>(netSingle, netBatches, searchSettings, &playSettings);
 	case MCTSAgentType::kSmallLarge:
-		return make_unique<MCTSAgent>(netSingleLarge, netBatchesSmall, netBatchesLarge, searchSettings, &playSettings);
+		return make_unique<MCTSAgent>(netSingle, netSingleLarge, netBatchesSmall, netBatchesLarge, searchSettings, &playSettings);
     default:
       info_string("Unknown MCTSAgentType");
       return nullptr;

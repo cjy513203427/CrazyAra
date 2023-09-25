@@ -146,6 +146,7 @@ public:
     Node* get_root_node() const;
     SearchLimits *get_search_limits() const;
     void set_root_node(Node *value);
+    void set_root_node_large(Node *value);
     bool is_running() const;
     void set_is_running(bool value);
     void set_reached_tablebases(bool value);

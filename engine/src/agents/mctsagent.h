@@ -56,6 +56,7 @@ public:
     unique_ptr<TimeManager> timeManager;
 
     shared_ptr<Node> rootNode;
+    shared_ptr<Node> rootNodeLarge;
     unique_ptr<StateObj> rootState;
 
     // stores the pointer to the root node which will become the new root
@@ -81,6 +82,8 @@ public:
 
     unique_ptr<ThreadManager> threadManager;
     bool reachedTablebases;
+    NeuralNetAPI* netSingleLarge;
+    
 public:
     MCTSAgent(NeuralNetAPI* netSingle,
               vector<unique_ptr<NeuralNetAPI>>& netBatches,
@@ -88,6 +91,13 @@ public:
               PlaySettings* playSettings);
 
 	MCTSAgent(NeuralNetAPI* netSingle,
+		vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall,
+		vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
+		SearchSettings* searchSettings,
+		PlaySettings* playSettings);
+
+	MCTSAgent(NeuralNetAPI* netSingle,
+            NeuralNetAPI* netSingleLarge,
 		vector<unique_ptr<NeuralNetAPI>>& netBatchesSmall,
 		vector<unique_ptr<NeuralNetAPI>>& netBatchesLarge,
 		SearchSettings* searchSettings,
@@ -194,9 +204,10 @@ public:
 
     /**
      * @brief create_new_root_node Creates a new root node for the given board position and requests the neural network for evaluation
-     * @param pos Board position
+     * @param state Board state
+     * @param net Net
      */
-    inline void create_new_root_node(StateObj* state);
+    inline shared_ptr<Node> create_new_root_node(StateObj* state, NeuralNetAPI *net);
 
     /**
      * @brief delete_old_tree Clear the old tree except the gameNodes (rootNode, opponentNextRoot)
@@ -216,7 +227,10 @@ public:
      */
     void update_nps_measurement(float curNPS);
 private:
-    void set_root_node_predictions();
+    /**
+     * @brief set
+    */
+    void set_root_node_predictions(NeuralNetAPI *net, Node *rootNode);
 };
 
 /**
