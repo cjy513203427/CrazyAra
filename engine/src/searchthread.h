@@ -231,19 +231,20 @@ private:
      * u_{PUCT}(s, a) = P(s, a) * \frac{sqrt(N(s))}{N(s, a)}
      * @param description Return type with NodeDescription
     */
-    StateObj* select_unevaluated_leafState_puct(Node* rootNode);
+    void select_unevaluated_leafState_puct(Node* rootNode);
 
     /**
      * @brief select unexpanded leaf state by priority
-     * @param 
+     * @param rootNode rootnode for Small tree
+	   @param rootNodeLarge rootnode for large tree
     */
-    StateObj* select_unevaluated_leafState_priority();
+    StateObj* select_unevaluated_leafState_priority(Node* rootNode, Node* rootNodeLarge);
 
     /**
      * @brief update nodes
      * @param leaft_state state of leaf
     */
-    void update(NodeDescription& description, StateObj* leaft_state);
+    void update(NodeDescription& description);
 
 };
 
