@@ -105,6 +105,12 @@ Node::Node(StateObj* state, const SearchSettings* searchSettings):
     policyProbSmall.resize(legalActions.size());
 }
 
+Node::Node(char data)
+{
+	m_cData = data;
+	m_IsVisited = false;
+}
+
 bool Node::solved_win(const Node* childNode, const SearchSettings* searchSettings) const
 {
     switch (searchSettings->searchPlayerMode) {

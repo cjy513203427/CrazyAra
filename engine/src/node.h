@@ -114,6 +114,9 @@ private:
     bool sorted;
 
 public:
+	char m_cData;
+	bool m_IsVisited;
+
     /**
      * @brief Node Primary constructor which is used when expanding a node during search
      * @param State Corresponding state object
@@ -121,6 +124,11 @@ public:
      */
     Node(StateObj *state,
          const SearchSettings* searchSettings);
+
+    /**
+     * @brief Node simple constructor which is used for graph structure
+    */
+    Node(char data = 0);
 
     /**
      * @brief ~Node Destructor which frees memory and the board position
