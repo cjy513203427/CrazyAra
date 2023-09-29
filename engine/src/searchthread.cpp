@@ -397,7 +397,7 @@ void SearchThread::simulation_puct(Node* rootNode, size_t &numTerminalNodes){
 void SearchThread::thread_iteration()
 {
     if(searchSettings->useMPVMCTS){
-        mpv_mcts(5, 0);
+        mpv_mcts(5, 3);
     }else{
         create_mini_batch(rootNode);
         create_mini_batch(rootNodeLarge);
@@ -479,26 +479,33 @@ void SearchThread::mpv_mcts(size_t b_Small, size_t b_Large){
         actionsBuffer.clear();
         trajectoryBuffer.clear();
         // if i in list
-        vector<int>::iterator it = find(list.begin(), list.end(), i);
-        if(it == list.end()){
+		bool found = false;
+		for (const int &element : list) {
+			if (element == i) {
+				found = true;
+				break;
+			}
+		}
+
+        if(found){
             // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_S)
-            StateObj* state_leaf = select_unevaluated_leafState_puct(rootNode);
+            select_unevaluated_leafState_puct(rootNode);
             net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
             // (p, v) = f_S (s_leaf)
             set_nn_results_to_child_nodes();
             // Update(T_S, s_leaf, (p, v))
-            update(description, state_leaf);
+            update(description);
         }else{
             // S_leaf = SelectUnevaluatedLeafStateByPriority(T_L)
-            StateObj* state_leaf = select_unevaluated_leafState_priority();
+            StateObj* state_leaf = select_unevaluated_leafState_priority(rootNode, rootNodeLarge);
             nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
             if(rootNode->get_real_visits() == 0)
                 // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_L)
-                StateObj* state_leaf = select_unevaluated_leafState_puct(rootNodeLarge);
+                select_unevaluated_leafState_puct(rootNodeLarge);
             // (p, v) = f_L (s_leaf)
             set_nn_results_to_child_nodes();
             // Update(T_L, s_leaf, (p, v))
-            update(description, state_leaf);
+            update(description);
         }
     }
 }
@@ -519,16 +526,22 @@ vector<int> SearchThread::randomly_select(int lowerbound, int upperbound, int nu
     return selections; 
 }  
 
-StateObj* SearchThread::select_unevaluated_leafState_puct(Node* rootNode){
+void SearchThread::select_unevaluated_leafState_puct(Node* rootNode){
     size_t num_loop = 0;
     simulation_puct(rootNode, num_loop);
 }
 
-StateObj* SearchThread::select_unevaluated_leafState_priority(){
+StateObj* SearchThread::select_unevaluated_leafState_priority(Node* rootNode, Node* rootNodeLarge){
+	// Priority means higher visit counts(based on small tree)
+	// For each node have potential nodes, choose important nodes which has the most qvalues. The best move has the most visits. Subsequent nodes and opponent move are also important. Future moves take into account.
+	rootNode->get_real_visits();
+	ChildIdx best_q_id =  rootNode->get_best_q_idx();
+	rootNode->get_q_value(best_q_id);
 
+	return rootState;
 }
 
-void SearchThread::update(NodeDescription& description, StateObj* leaft_state){
+void SearchThread::update(NodeDescription& description){
     backup_value_outputs();
     backup_collisions();
 }
