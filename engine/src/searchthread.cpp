@@ -400,7 +400,7 @@ void SearchThread::thread_iteration()
         mpv_mcts(5, 0);
     }else{
         create_mini_batch(rootNode);
-        create_mini_batch(rootNodeLarge);
+        // create_mini_batch(rootNodeLarge);
         #ifndef SEARCH_UCT
         cout<<"newNodes->size():"<<newNodes->size()<<endl;
         if (newNodes->size() != 0) {
