@@ -30,6 +30,117 @@
 #include "../util/communication.h"
 #include "evalinfo.h"
 
+Node::Node(){}
+
+Node::Node(int index, int data, Node* pLChild, Node* pRChild, Node* pParent):index(index), data(data), pLChild(pLChild), pRChild(pRChild), pParent(pParent)
+{}
+
+Node *Node::SearchNode(int nodeIndex)
+{
+	if (this->index == nodeIndex)
+	{
+		return this;
+	}
+
+	Node *temp = NULL;
+	if (this->pLChild != NULL)
+	{
+		if (this->pLChild->index == nodeIndex)
+		{
+			return this->pLChild;
+		}
+		else
+		{
+			temp = this->pLChild->SearchNode(nodeIndex);
+			if (temp != NULL)
+			{
+				return temp;
+			}
+		}
+	}
+
+	if (this->pRChild != NULL)
+	{
+		if (this->pRChild->index == nodeIndex)
+		{
+			return this->pRChild;
+		}
+		else
+		{
+			temp = this->pRChild->SearchNode(nodeIndex);
+			if (temp != NULL)
+			{
+				return temp;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+void Node::delete_node()
+{
+	if (this->pLChild != NULL)
+	{
+		this->pLChild->delete_node();
+	}
+	if (this->pRChild != NULL)
+	{
+		this->pRChild->delete_node();
+	}
+	if (this->pParent != NULL)
+	{
+		if (this->pParent->pLChild == this)
+		{
+			this->pParent->pLChild = NULL;
+		}
+		if (this->pParent->pRChild == this)
+		{
+			this->pParent->pRChild = NULL;
+		}
+	}
+	
+	delete this;
+}
+
+void Node::preorder_traversal()
+{
+	cout << this->index<<"  "<<this->data << endl;
+	if (this->pLChild != NULL)
+	{
+		this->pLChild->preorder_traversal();
+	}
+	if (this->pRChild != NULL)
+	{
+		this->pRChild->preorder_traversal();
+	}
+}
+
+void Node::inorder_traversal()
+{
+	if (this->pLChild != NULL)
+	{
+		this->pLChild->inorder_traversal();
+	}
+	cout << this->index << "  " << this->data << endl;
+	if (this->pRChild != NULL)
+	{
+		this->pRChild->inorder_traversal();
+	}
+}
+
+void Node::postorder_traversal()
+{
+	if (this->pLChild != NULL)
+	{
+		this->pLChild->postorder_traversal();
+	}
+	if (this->pRChild != NULL)
+	{
+		this->pRChild->postorder_traversal();
+	}
+	cout << this->index << "  " << this->data << endl;
+}
 
 bool Node::is_sorted() const
 {

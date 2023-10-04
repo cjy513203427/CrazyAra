@@ -114,8 +114,40 @@ private:
     bool sorted;
 
 public:
+    // for tree structure
+    int index;
+	int data;
+	Node *pLChild;
+	Node *pRChild;
+	Node *pParent;
+
+    // for graph structure
 	char m_cData;
 	bool m_IsVisited;
+
+    /**
+     * @brief parameterless constructor
+    */
+    Node();
+
+    /**
+     * @brief constructor with default value
+    */
+    Node(int index = 0, int data = 0, Node* pLChild = NULL, Node* pRChild = NULL, Node* pParent = NULL);
+    
+    /**
+     * @brief search node with nodeIndex
+     * @param nodeIndex
+    */
+    Node *SearchNode(int nodeIndex);
+    
+    /**
+     * @brief Delete node recursively
+    */
+	void delete_node();
+	void preorder_traversal();
+	void inorder_traversal();
+	void postorder_traversal();
 
     /**
      * @brief Node Primary constructor which is used when expanding a node during search
@@ -134,6 +166,8 @@ public:
      * @brief ~Node Destructor which frees memory and the board position
      */
     ~Node();
+
+    Node *search_node(int nodeIndex);
 
     /**
      * @brief get_current_u_values Calucates and returns the current u-values for this node
@@ -551,7 +585,7 @@ private:
      * The main idea is based on the paper "Exact-Win Strategy for Overcoming AlphaZero" by Chen et al.
      * https://www.researchgate.net/publication/331216459_Exact-Win_Strategy_for_Overcoming_AlphaZero
      * The solver uses the current backpropagating child node as well as all available child nodes.
-     * @param childNode Child nodes which backpropagates the value
+     * @param childIdx id of child nodes which backpropagates the value
      * @param searchSettings Pointer to the search settings struct
      * @return true, if the node type of the current node was modified
      */
@@ -652,7 +686,7 @@ private:
     bool solved_tb_loss(const Node* childNode, const SearchSettings* searchSettings) const;
 
     /**
-     * @brief only_won_tb_child_nodws Checks if this node has only WON child nodes
+     * @brief only_won_tb_child_nodes Checks if this node has only WON child nodes
      * @return true if only WIN_TB child nodes exist else false
      */
     bool only_won_tb_child_nodes() const;
@@ -682,8 +716,8 @@ private:
 
     /**
      * @brief update_solved_terminal Updates member variables for a solved terminal node
-     * @param childNode Child nodes which backpropagates the value
-     * @param targetValue Target value which will be set to be the new node value
+     * @param childNode Child nodes which backpropagate the value
+     * @param childIdx Id of the child nodes which backpropagate the value
      */
     template <int targetValue>
     void update_solved_terminal(const Node* childNode, uint_fast16_t childIdx);
@@ -739,6 +773,8 @@ DynamicVector<float> retrieve_dynamic_vector(const vector<Node*>& childNodes, vF
 
 /**
  * @brief get_current_cput Calculates the current cpuct value factor for this node based on the total node visits
+ * @param visits 
+ * @param searchSettings Pointer to the search settings struct
  * @return float
  */
 float get_current_cput(float visits, const SearchSettings* searchSettings);
