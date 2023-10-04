@@ -4,9 +4,13 @@ Graph::Graph(int capacity)
 {
 	m_iCapacity = capacity;
 	m_iNodeCount = 0;
-	m_pNodeArray = new Node[m_iCapacity];
+	//m_pNodeArray = new Node[m_iCapacity];
+	m_pNodeArray = (Node*) operator new(sizeof(Node)*m_iCapacity);
+	for (int i = 0; i < 10; i++) {
+		new(&m_pNodeArray[i])Node('0');
+	}
+
 	m_pMatrix = new int[m_iCapacity*m_iCapacity];
-	//memset(m_pMatrix, 0, m_iCapacity*m_iCapacity * sizeof(int));
 	for (int i = 0; i < m_iCapacity*m_iCapacity; i++)
 	{
 		m_pMatrix[i] = 0;

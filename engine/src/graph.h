@@ -15,7 +15,7 @@ public:
     // set adjacency matrix for directed graph
 	bool setValueToMatrixForDirectedGraph(int row, int col, int val = 1);
     // set adjacency matrix for undirected graph
-	bool setValueToMatrixForUndirectedGraph(int row, int col, int val = 1);//为无向图设置邻接矩阵
+	bool setValueToMatrixForUndirectedGraph(int row, int col, int val = 1);
     // print adjacency matrix
 	void printMatrix();
 
