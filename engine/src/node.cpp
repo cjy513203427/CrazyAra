@@ -30,12 +30,12 @@
 #include "../util/communication.h"
 #include "evalinfo.h"
 
-Node::Node(){}
+//Node::Node(){}
 
 Node::Node(int index, int data, Node* pLChild, Node* pRChild, Node* pParent):index(index), data(data), pLChild(pLChild), pRChild(pRChild), pParent(pParent)
 {}
 
-Node *Node::SearchNode(int nodeIndex)
+Node *Node::search_node(int nodeIndex)
 {
 	if (this->index == nodeIndex)
 	{
@@ -51,7 +51,7 @@ Node *Node::SearchNode(int nodeIndex)
 		}
 		else
 		{
-			temp = this->pLChild->SearchNode(nodeIndex);
+			temp = this->pLChild->search_node(nodeIndex);
 			if (temp != NULL)
 			{
 				return temp;
@@ -67,7 +67,7 @@ Node *Node::SearchNode(int nodeIndex)
 		}
 		else
 		{
-			temp = this->pRChild->SearchNode(nodeIndex);
+			temp = this->pRChild->search_node(nodeIndex);
 			if (temp != NULL)
 			{
 				return temp;

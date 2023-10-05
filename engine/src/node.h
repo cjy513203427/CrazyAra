@@ -24,7 +24,7 @@
  *
  * Class which stores the statistics of all nodes and in the search tree.
  */
-
+#pragma once
 #ifndef NODE_H
 #define NODE_H
 
@@ -128,18 +128,18 @@ public:
     /**
      * @brief parameterless constructor
     */
-    Node();
+    //Node ();
 
     /**
      * @brief constructor with default value
     */
-    Node(int index = 0, int data = 0, Node* pLChild = NULL, Node* pRChild = NULL, Node* pParent = NULL);
+    Node(int index, int data, Node* pLChild, Node* pRChild, Node* pParent);
     
     /**
-     * @brief search node with nodeIndex
+     * @brief search node with nodeIndex for tree
      * @param nodeIndex
     */
-    Node *SearchNode(int nodeIndex);
+    Node *search_node(int nodeIndex);
     
     /**
      * @brief Delete node recursively
@@ -167,7 +167,6 @@ public:
      */
     ~Node();
 
-    Node *search_node(int nodeIndex);
 
     /**
      * @brief get_current_u_values Calucates and returns the current u-values for this node

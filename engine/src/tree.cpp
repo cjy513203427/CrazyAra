@@ -3,7 +3,7 @@
 using namespace std;
 Tree::Tree()
 {
-	m_pRoot = new Node();
+	m_pRoot = new Node(0,0,NULL,NULL,NULL);
 };
 
 Tree::~Tree()
