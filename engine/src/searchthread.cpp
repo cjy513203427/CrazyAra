@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <climits>
 #include "util/blazeutil.h"
+#include <queue>
 
 
 size_t SearchThread::get_max_depth() const
@@ -423,6 +424,12 @@ void run_search_thread(SearchThread* t)
         t->thread_iteration();
     }
     t->set_is_running(false);
+
+    
+    // Get final rootNode
+    Node *rootNodeBFS = t->get_root_node();
+    std::shared_ptr<Node> sharedRootNodeBFS(rootNodeBFS);
+	t->iterate_all_nodes_bfs(sharedRootNodeBFS);
 }
 
 void SearchThread::backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories) {
@@ -534,11 +541,37 @@ void SearchThread::select_unevaluated_leafState_puct(Node* rootNode){
 StateObj* SearchThread::select_unevaluated_leafState_priority(Node* rootNode, Node* rootNodeLarge){
 	// Priority means higher visit counts(based on small tree)
 	// For each node have potential nodes, choose important nodes which has the most qvalues. The best move has the most visits. Subsequent nodes and opponent move are also important. Future moves take into account.
-	rootNode->get_real_visits();
+	
+    rootNode->get_real_visits();
 	ChildIdx best_q_id =  rootNode->get_best_q_idx();
 	rootNode->get_q_value(best_q_id);
 
 	return rootState;
+}
+
+void SearchThread::iterate_all_nodes_bfs(std::shared_ptr<Node> node)
+{
+	if (node == nullptr) {
+		return;
+	}
+
+	std::queue<std::shared_ptr<Node>> q;
+	q.push(node);
+
+
+	while (!q.empty()) {
+		std::shared_ptr<Node> curr = q.front();
+
+		q.pop();
+        
+        vector<shared_ptr<Node>> child_nodes = curr->get_child_nodes();
+
+		std::cout << "curr->get_value_sum(): " << curr->get_value_sum() << endl;
+
+		for (shared_ptr<Node> child : child_nodes) {
+			q.push(child);
+		}
+	}
 }
 
 void SearchThread::update(NodeDescription& description){
@@ -573,3 +606,4 @@ size_t get_random_depth()
     const int randInt = rand() % 100 + 1;
     return std::ceil(-std::log2(1 - randInt / 100.0) - 1);
 }
+

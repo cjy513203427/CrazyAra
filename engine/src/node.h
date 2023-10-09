@@ -115,16 +115,14 @@ private:
 
 public:
     // for tree structure
-    int index;
-	int data;
-	Node *pLChild;
-	Node *pRChild;
-	Node *pParent;
+    int value;
+    std::vector<Node*> children;
 
     // for graph structure
 	char m_cData;
 	bool m_IsVisited;
-
+    
+    Node(int val);
     /**
      * @brief parameterless constructor
     */
@@ -133,7 +131,7 @@ public:
     /**
      * @brief constructor with default value
     */
-    Node(int index, int data, Node* pLChild, Node* pRChild, Node* pParent);
+    // Node(int index, int data, Node* pLChild, Node* pRChild, Node* pParent);
     
     /**
      * @brief search node with nodeIndex for tree
@@ -181,6 +179,11 @@ public:
      * @return child node
      */
     Node* get_child_node(ChildIdx childIdx);
+
+    /**
+     * @brief get all child nodes
+    */
+    vector<shared_ptr<Node>> get_child_nodes();
 
     ChildIdx select_child_node(const SearchSettings* searchSettings);
 

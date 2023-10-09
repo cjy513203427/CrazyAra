@@ -32,115 +32,10 @@
 
 //Node::Node(){}
 
-Node::Node(int index, int data, Node* pLChild, Node* pRChild, Node* pParent):index(index), data(data), pLChild(pLChild), pRChild(pRChild), pParent(pParent)
-{}
+// Node::Node(int index, int data, Node* pLChild, Node* pRChild, Node* pParent):index(index), data(data), pLChild(pLChild), pRChild(pRChild), pParent(pParent)
+// {}
 
-Node *Node::search_node(int nodeIndex)
-{
-	if (this->index == nodeIndex)
-	{
-		return this;
-	}
-
-	Node *temp = NULL;
-	if (this->pLChild != NULL)
-	{
-		if (this->pLChild->index == nodeIndex)
-		{
-			return this->pLChild;
-		}
-		else
-		{
-			temp = this->pLChild->search_node(nodeIndex);
-			if (temp != NULL)
-			{
-				return temp;
-			}
-		}
-	}
-
-	if (this->pRChild != NULL)
-	{
-		if (this->pRChild->index == nodeIndex)
-		{
-			return this->pRChild;
-		}
-		else
-		{
-			temp = this->pRChild->search_node(nodeIndex);
-			if (temp != NULL)
-			{
-				return temp;
-			}
-		}
-	}
-
-	return NULL;
-}
-
-void Node::delete_node()
-{
-	if (this->pLChild != NULL)
-	{
-		this->pLChild->delete_node();
-	}
-	if (this->pRChild != NULL)
-	{
-		this->pRChild->delete_node();
-	}
-	if (this->pParent != NULL)
-	{
-		if (this->pParent->pLChild == this)
-		{
-			this->pParent->pLChild = NULL;
-		}
-		if (this->pParent->pRChild == this)
-		{
-			this->pParent->pRChild = NULL;
-		}
-	}
-	
-	delete this;
-}
-
-void Node::preorder_traversal()
-{
-	cout << this->index<<"  "<<this->data << endl;
-	if (this->pLChild != NULL)
-	{
-		this->pLChild->preorder_traversal();
-	}
-	if (this->pRChild != NULL)
-	{
-		this->pRChild->preorder_traversal();
-	}
-}
-
-void Node::inorder_traversal()
-{
-	if (this->pLChild != NULL)
-	{
-		this->pLChild->inorder_traversal();
-	}
-	cout << this->index << "  " << this->data << endl;
-	if (this->pRChild != NULL)
-	{
-		this->pRChild->inorder_traversal();
-	}
-}
-
-void Node::postorder_traversal()
-{
-	if (this->pLChild != NULL)
-	{
-		this->pLChild->postorder_traversal();
-	}
-	if (this->pRChild != NULL)
-	{
-		this->pRChild->postorder_traversal();
-	}
-	cout << this->index << "  " << this->data << endl;
-}
+Node::Node(int val):value(val) {}
 
 bool Node::is_sorted() const
 {
@@ -1142,6 +1037,14 @@ DynamicVector<float> Node::get_current_u_values(const SearchSettings* searchSett
 Node* Node::get_child_node(ChildIdx childIdx)
 {
     return d->childNodes[childIdx].get();
+}
+
+vector<shared_ptr<Node>> Node::get_child_nodes(){
+    if (d->childNodes.empty()) {
+        return std::vector<std::shared_ptr<Node>>();
+    } else {
+        return d->childNodes;
+    }
 }
 
 void Node::get_mcts_policy(DynamicVector<double>& mctsPolicy, ChildIdx& bestMoveIdx, const SearchSettings* searchSettings) const

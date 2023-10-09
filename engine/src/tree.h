@@ -1,20 +1,25 @@
 #pragma once
-#ifndef  TREE_H
+#ifndef TREE_H
 #define TREE_H
+
 #include "node.h"
-class Tree
-{
+
+class Tree {
 public:
-	Tree();
+	Node* root;
+
+	Tree(int val);
 	~Tree();
-	Node *search_node(int nodeIndex);
-	bool add_node(int nodeIndex, int direction, Node* pNode);
-	bool delete_node(int nodeIndex, Node* pNode);
-	void preorder_traversal();
-	void inorder_traversal();
-	void postorder_traversal();
+
+	void add_child(Node* parent, int val);
+	void preorder_traversal(Node* node);
+	void inorder_traversal(Node* node);
+	void postorder_traversal(Node* node);
+	void bfs(Node* node);
+	void dfs(Node* node);
+
 private:
-	Node * m_pRoot;
+	void dfs_helper(Node* node);
 };
 
-#endif // ! TREE_H
+#endif // TREE_H

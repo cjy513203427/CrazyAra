@@ -175,6 +175,11 @@ public:
 
     Node* get_starting_node(Node* currentNode, NodeDescription& description, ChildIdx& childIdx);
 
+    /**
+     * @brief iterate all nodes with BFS
+    */
+    void iterate_all_nodes_bfs(std::shared_ptr<Node> node);
+
 private:
     /**
      * @brief set_nn_results_to_child_nodes Sets the neural network value evaluation and policy prediction vector for every newly expanded nodes

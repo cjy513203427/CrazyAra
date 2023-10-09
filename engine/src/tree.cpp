@@ -1,79 +1,92 @@
-#include"tree.h"
-#include<iostream>
-using namespace std;
-Tree::Tree()
-{
-	m_pRoot = new Node(0,0,NULL,NULL,NULL);
-};
+#include "Tree.h"
+#include <iostream>
+#include <queue>
 
-Tree::~Tree()
-{
-	m_pRoot->delete_node();
+Tree::Tree(int val) {
+	root = new Node(val);
 }
 
-Node *Tree::search_node(int nodeIndex)
-{
-	return m_pRoot->search_node(nodeIndex);
-}
-//nodeIndex is the index of father node
-bool Tree::add_node(int nodeIndex, int direction, Node* pNode)
-{
-	Node *temp = search_node(nodeIndex);
-	if (temp == NULL)
-	{
-		return false;
-	}
-
-	Node *node = new Node();
-	if (node == NULL)
-	{
-		return false;
-	}
-	node->index = pNode->index;
-	node->data = pNode->data;
-	node->pParent = temp;
-
-	if (direction == 0)
-	{
-		temp->pLChild = node;
-	}
-
-	if (direction == 1)
-	{
-		temp->pRChild = node;
-	}
-
-	return true;
+Tree::~Tree() {
+	delete root;
 }
 
-bool Tree::delete_node(int nodeIndex, Node* pNode)
-{
-	Node *temp = search_node(nodeIndex);
-	if (temp == NULL)
-	{
-		return false;
+void Tree::add_child(Node* parent, int val) {
+	Node* child = new Node(val);
+	parent->children.push_back(child);
+}
+
+void Tree::preorder_traversal(Node* node) {
+	if (node == nullptr) {
+		return;
 	}
 
-	if (pNode != NULL)
-	{
-		pNode->data = temp->data;
+	std::cout << node->value << " ";
+
+	for (Node* child : node->children) {
+		preorder_traversal(child);
+	}
+}
+
+void Tree::inorder_traversal(Node* node) {
+	if (node == nullptr) {
+		return;
 	}
 
-	temp->delete_node();
-	return true;
+	if (!node->children.empty()) {
+		inorder_traversal(node->children[0]);
+	}
+
+	std::cout << node->value << " ";
+
+	for (size_t i = 1; i < node->children.size(); ++i) {
+		inorder_traversal(node->children[i]);
+	}
 }
 
-void Tree::preorder_traversal()
-{
-	m_pRoot->preorder_traversal();
+void Tree::postorder_traversal(Node* node) {
+	if (node == nullptr) {
+		return;
+	}
+
+	for (Node* child : node->children) {
+		postorder_traversal(child);
+	}
+
+	std::cout << node->value << " ";
 }
 
-void Tree::inorder_traversal()
-{
-	m_pRoot->inorder_traversal();
+void Tree::bfs(Node* node) {
+	if (node == nullptr) {
+		return;
+	}
+
+	std::queue<Node*> q;
+	q.push(node);
+
+	while (!q.empty()) {
+		Node* curr = q.front();
+		q.pop();
+
+		std::cout << curr->value << " ";
+
+		for (Node* child : curr->children) {
+			q.push(child);
+		}
+	}
 }
 
-void Tree::postorder_traversal()
-{
-	m_pRoot->postorder_traversal();
+void Tree::dfs(Node* node) {
+	dfs_helper(node);
+}
+
+void Tree::dfs_helper(Node* node) {
+	if (node == nullptr) {
+		return;
+	}
+
+	std::cout << node->value << " ";
+
+	for (Node* child : node->children) {
+		dfs_helper(child);
+	}
 }
