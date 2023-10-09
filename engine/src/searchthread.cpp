@@ -34,6 +34,7 @@
 #include <climits>
 #include "util/blazeutil.h"
 #include <queue>
+#include <unordered_map>
 
 
 size_t SearchThread::get_max_depth() const
@@ -555,7 +556,11 @@ void SearchThread::iterate_all_nodes_bfs(std::shared_ptr<Node> node)
 		return;
 	}
 
+    // a queue for traverse
 	std::queue<std::shared_ptr<Node>> q;
+    // key: number of the visits, value: node pointer which wants to be evaluated
+    std::unordered_multimap<int, std::shared_ptr<Node>> leafNodesMap;
+
 	q.push(node);
 
 
@@ -568,6 +573,15 @@ void SearchThread::iterate_all_nodes_bfs(std::shared_ptr<Node> node)
 
 		std::cout << "curr->get_value_sum(): " << curr->get_value_sum() << endl;
 
+        
+        // When node if not evaluated
+        if(!curr->is_sorted()){
+            
+            uint32_t visists = curr->get_visits();
+            leafNodesMap.emplace(visists, curr);
+        }
+
+        // TODO: Segmentation Fault
 		for (shared_ptr<Node> child : child_nodes) {
 			q.push(child);
 		}

@@ -1,4 +1,4 @@
-#include "Tree.h"
+#include "tree.h"
 #include <iostream>
 #include <queue>
 
