@@ -535,6 +535,11 @@ float Node::get_q_value(ChildIdx childIdx) const
     return d->qValues[childIdx];
 }
 
+NodeData *Node::get_node_data() const
+{
+    return d.get();
+}
+
 DynamicVector<float> Node::get_q_values() const
 {
     return d->qValues;
