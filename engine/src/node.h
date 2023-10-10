@@ -290,6 +290,9 @@ public:
 
 
     bool is_terminal() const;
+    /**
+     * @brief If the node is evaluated
+    */
     bool has_nn_results() const;
     float get_value() const;
 

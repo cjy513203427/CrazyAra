@@ -575,13 +575,13 @@ void SearchThread::iterate_all_nodes_bfs(std::shared_ptr<Node> node)
 
         
         // When node if not evaluated
-        if(!curr->is_sorted()){
+        if(curr->has_nn_results()){
             
             uint32_t visists = curr->get_visits();
             leafNodesMap.emplace(visists, curr);
         }
 
-        // TODO: Segmentation Fault
+        //TODO: Segmentation Fault
 		for (shared_ptr<Node> child : child_nodes) {
 			q.push(child);
 		}

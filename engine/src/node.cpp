@@ -1040,7 +1040,7 @@ Node* Node::get_child_node(ChildIdx childIdx)
 }
 
 vector<shared_ptr<Node>> Node::get_child_nodes(){
-    if (d->childNodes.empty()) {
+    if (d==nullptr) {
         return std::vector<std::shared_ptr<Node>>();
     } else {
         return d->childNodes;
