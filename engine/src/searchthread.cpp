@@ -565,21 +565,20 @@ std::unordered_multimap<int, Node*> SearchThread::iterate_all_nodes_bfs(Node* no
 		q.pop();
         
         NodeData* curData = curNode->get_node_data();
-        //vector<shared_ptr<Node>> child_nodes = curr->get_child_nodes();
 
         std::cout << "curr->get_value_sum(): " << curNode->get_value_sum() << endl;
 
         // When node if not evaluated
         uint32_t visists = curNode->get_visits();
+
+        std::cout << "curNode->get_visits(): " << curNode->get_visits() << endl;
+
         leafNodesMap.emplace(visists, curNode);
 
         if(curData == nullptr){
             continue;
         }
 
-
-
-        // TODO: Segmentation Fault
         for (size_t idx = 0; idx < curData->childNodes.size(); ++idx) {
             if (curData->childNodes[idx] != nullptr) {
                 q.push(curData->childNodes[idx].get());
