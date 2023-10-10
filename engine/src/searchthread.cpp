@@ -429,7 +429,7 @@ void run_search_thread(SearchThread* t)
     
     // Get final rootNode
     Node *rootNodeBFS = t->get_root_node();
-    t->iterate_all_nodes_bfs(rootNodeBFS);
+	t->iterate_all_nodes_bfs(rootNodeBFS);
 }
 
 void SearchThread::backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories) {
@@ -552,7 +552,7 @@ StateObj* SearchThread::select_unevaluated_leafState_priority(Node* rootNode, No
 std::unordered_multimap<int, Node*> SearchThread::iterate_all_nodes_bfs(Node* node)
 {
     // a queue for traverse
-    std::queue<Node*> q;
+	std::queue<Node*> q;
     // key: number of the visits, value: node pointer which wants to be evaluated
     std::unordered_multimap<int, Node*> leafNodesMap;
 
@@ -560,30 +560,29 @@ std::unordered_multimap<int, Node*> SearchThread::iterate_all_nodes_bfs(Node* no
 
 
 	while (!q.empty()) {
-        Node* curNode = q.front();
+		Node* curNode = q.front();
 
 		q.pop();
-        
+
         NodeData* curData = curNode->get_node_data();
 
-        std::cout << "curr->get_value_sum(): " << curNode->get_value_sum() << endl;
+		std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
 
         // When node if not evaluated
-        uint32_t visists = curNode->get_visits();
-
-        std::cout << "curNode->get_visits(): " << curNode->get_visits() << endl;
-
-        leafNodesMap.emplace(visists, curNode);
 
         if(curData == nullptr){
             continue;
         }
+
+        uint32_t visists = curNode->get_visits();
+        leafNodesMap.emplace(visists, curNode);
 
         for (size_t idx = 0; idx < curData->childNodes.size(); ++idx) {
             if (curData->childNodes[idx] != nullptr) {
                 q.push(curData->childNodes[idx].get());
             }
         }
+
 	}
     return leafNodesMap;
 }
