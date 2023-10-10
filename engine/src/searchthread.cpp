@@ -547,6 +547,7 @@ vector<int> SearchThread::randomly_select(int lowerbound, int upperbound, int nu
 void SearchThread::select_unevaluated_leafState_puct(Node* rootNode){
     size_t num_loop = 0;
     simulation_puct(rootNode, num_loop);
+    simulation_puct(rootNodeLarge, num_loop);
 }
 
 StateObj* SearchThread::select_unevaluated_leafState_priority(Node* rootNode, Node* rootNodeLarge){
