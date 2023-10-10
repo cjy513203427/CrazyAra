@@ -429,8 +429,7 @@ void run_search_thread(SearchThread* t)
     
     // Get final rootNode
     Node *rootNodeBFS = t->get_root_node();
-    std::shared_ptr<Node> sharedRootNodeBFS(rootNodeBFS);
-	t->iterate_all_nodes_bfs(sharedRootNodeBFS);
+    t->iterate_all_nodes_bfs(rootNodeBFS);
 }
 
 void SearchThread::backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories) {
@@ -550,42 +549,44 @@ StateObj* SearchThread::select_unevaluated_leafState_priority(Node* rootNode, No
 	return rootState;
 }
 
-void SearchThread::iterate_all_nodes_bfs(std::shared_ptr<Node> node)
+std::unordered_multimap<int, Node*> SearchThread::iterate_all_nodes_bfs(Node* node)
 {
-	if (node == nullptr) {
-		return;
-	}
-
     // a queue for traverse
-	std::queue<std::shared_ptr<Node>> q;
+    std::queue<Node*> q;
     // key: number of the visits, value: node pointer which wants to be evaluated
-    std::unordered_multimap<int, std::shared_ptr<Node>> leafNodesMap;
+    std::unordered_multimap<int, Node*> leafNodesMap;
 
 	q.push(node);
 
 
 	while (!q.empty()) {
-		std::shared_ptr<Node> curr = q.front();
+        Node* curNode = q.front();
 
 		q.pop();
         
-        vector<shared_ptr<Node>> child_nodes = curr->get_child_nodes();
+        NodeData* curData = curNode->get_node_data();
+        //vector<shared_ptr<Node>> child_nodes = curr->get_child_nodes();
 
-		std::cout << "curr->get_value_sum(): " << curr->get_value_sum() << endl;
+        std::cout << "curr->get_value_sum(): " << curNode->get_value_sum() << endl;
 
-        
         // When node if not evaluated
-        if(curr->has_nn_results()){
-            
-            uint32_t visists = curr->get_visits();
-            leafNodesMap.emplace(visists, curr);
+        uint32_t visists = curNode->get_visits();
+        leafNodesMap.emplace(visists, curNode);
+
+        if(curData == nullptr){
+            continue;
         }
 
-        //TODO: Segmentation Fault
-		for (shared_ptr<Node> child : child_nodes) {
-			q.push(child);
-		}
+
+
+        // TODO: Segmentation Fault
+        for (size_t idx = 0; idx < curData->childNodes.size(); ++idx) {
+            if (curData->childNodes[idx] != nullptr) {
+                q.push(curData->childNodes[idx].get());
+            }
+        }
 	}
+    return leafNodesMap;
 }
 
 void SearchThread::update(NodeDescription& description){

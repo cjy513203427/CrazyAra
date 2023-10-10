@@ -467,6 +467,8 @@ public:
      */
     float get_q_value(ChildIdx idx) const;
 
+    NodeData* get_node_data() const;
+
     /**
      * @brief get_q_values Returns the Q-values for all child nodes
      * @return Q-values
