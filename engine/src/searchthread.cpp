@@ -130,6 +130,11 @@ Node *SearchThread::get_root_node() const
     return rootNode;
 }
 
+Node *SearchThread::get_root_node_large() const
+{
+    return rootNodeLarge;
+}
+
 SearchLimits *SearchThread::get_search_limits() const
 {
     return searchLimits;
@@ -429,7 +434,13 @@ void run_search_thread(SearchThread* t)
     
     // Get final rootNode
     Node *rootNodeBFS = t->get_root_node();
-	t->iterate_all_nodes_bfs(rootNodeBFS);
+    Node *rootNodeLargeBFS = t->get_root_node_large();
+    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
+	std::unordered_multimap<int, Node*> rootNodeMap = t->iterate_all_nodes_bfs(rootNodeBFS);
+    cout<<"Size of rootNodeMap = "<< rootNodeMap.size()<<endl;
+    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
+    std::unordered_multimap<int, Node*> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
+    cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
 }
 
 void SearchThread::backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories) {
@@ -566,7 +577,7 @@ std::unordered_multimap<int, Node*> SearchThread::iterate_all_nodes_bfs(Node* no
 
         NodeData* curData = curNode->get_node_data();
 
-		std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
+		// std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
 
         // When node if not evaluated
 

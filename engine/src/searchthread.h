@@ -144,6 +144,7 @@ public:
     // Getter, setter functions
     void set_search_limits(SearchLimits *s);
     Node* get_root_node() const;
+    Node* get_root_node_large() const;
     SearchLimits *get_search_limits() const;
     void set_root_node(Node *value);
     void set_root_node_large(Node *value);

@@ -210,6 +210,13 @@ public:
     inline shared_ptr<Node> create_new_root_node(StateObj* state, NeuralNetAPI *net);
 
     /**
+     * @brief create_new_root_node Creates a new root node for the given board position and requests the neural network for evaluation
+     * @param state Board state
+     * @param net Net
+     */
+    inline shared_ptr<Node> create_new_root_node_large(StateObj* state, NeuralNetAPI *net);
+
+    /**
      * @brief delete_old_tree Clear the old tree except the gameNodes (rootNode, opponentNextRoot)
      */
     void delete_old_tree();

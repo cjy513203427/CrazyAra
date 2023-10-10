@@ -153,7 +153,7 @@ size_t MCTSAgent::init_root_node(StateObj *state)
         if(netSingleLarge!=nullptr){
             std::cout<< "net->get_version()"<< version_to_string(net->get_version()) <<std::endl;
             std::cout<< "netSingleLarge->get_version()"<< version_to_string(netSingleLarge->get_version()) <<std::endl;
-            rootNodeLarge = create_new_root_node(state, netSingleLarge);
+            rootNodeLarge = create_new_root_node_large(state, netSingleLarge);
         }
         
         rootNode = create_new_root_node(state, net);
@@ -221,6 +221,26 @@ shared_ptr<Node> MCTSAgent::create_new_root_node(StateObj* state, NeuralNetAPI *
     rootNode->prepare_node_for_visits();
 
     return rootNode;
+}
+
+shared_ptr<Node> MCTSAgent::create_new_root_node_large(StateObj* state, NeuralNetAPI *net)
+{
+    info_string("create new tree");
+#ifdef MCTS_STORE_STATES
+    shared_ptr<Node>  rootNodeLarge = make_shared<Node>(state->clone(), searchSettings);
+#else
+    shared_ptr<Node> rootNodeLarge = make_shared<Node>(state, searchSettings);
+#endif
+#ifdef SEARCH_UCT
+    unique_ptr<StateObj> newState = unique_ptr<StateObj>(state->clone());
+    rootNodeLarge->set_value(newState->random_rollout());
+    rootNodeLarge->enable_has_nn_results();
+#else
+    set_root_node_predictions(net, rootNodeLarge.get());
+#endif
+    rootNodeLarge->prepare_node_for_visits();
+
+    return rootNodeLarge;
 }
 
 void MCTSAgent::delete_old_tree()
