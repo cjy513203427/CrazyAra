@@ -719,7 +719,7 @@ void Node::set_value(float value)
 
 Node* Node::add_new_node_to_tree(MapWithMutex* mapWithMutex, StateObj* newState, ChildIdx childIdx, const SearchSettings* searchSettings, bool& transposition)
 {
-    if(searchSettings->useMCGS) {
+     if(searchSettings->useMCGS) {
         mapWithMutex->mtx.lock();
         HashMap::const_iterator it = mapWithMutex->hashTable.find(newState->hash_key());
         if (it != mapWithMutex->hashTable.end()) {

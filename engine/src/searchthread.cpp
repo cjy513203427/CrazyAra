@@ -436,10 +436,10 @@ void run_search_thread(SearchThread* t)
     Node *rootNodeBFS = t->get_root_node();
     Node *rootNodeLargeBFS = t->get_root_node_large();
     cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
-	std::unordered_multimap<int, Node*> rootNodeMap = t->iterate_all_nodes_bfs(rootNodeBFS);
+	std::multimap<int, Node*, std::greater<int>> rootNodeMap = t->iterate_all_nodes_bfs(rootNodeBFS);
     cout<<"Size of rootNodeMap = "<< rootNodeMap.size()<<endl;
     cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
-    std::unordered_multimap<int, Node*> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
+    std::multimap<int, Node*, std::greater<int>> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
     cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
 }
 
@@ -450,7 +450,7 @@ void SearchThread::backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& 
         const bool solveForTerminal = searchSettings->mctsSolver && node->is_tablebase();
         backup_value<false>(node->get_value(), searchSettings, trajectories[idx], solveForTerminal);
 #else
-        backup_value<false>(node->get_value(), searchSettings, trajectories[idx], false);
+        backup_value<false>(node->get_value(), searSearch_TypechSettings, trajectories[idx], false);
 #endif
     }
     nodes.reset_idx();
@@ -561,12 +561,12 @@ StateObj* SearchThread::select_unevaluated_leafState_priority(Node* rootNode, No
 	return rootState;
 }
 
-std::unordered_multimap<int, Node*> SearchThread::iterate_all_nodes_bfs(Node* node)
+std::multimap<int, Node*, std::greater<int>> SearchThread::iterate_all_nodes_bfs(Node* node)
 {
     // a queue for traverse
 	std::queue<Node*> q;
     // key: number of the visits, value: node pointer which wants to be evaluated
-    std::unordered_multimap<int, Node*> leafNodesMap;
+    std::multimap<int, Node*> leafNodesMap;
 
 	q.push(node);
 
@@ -596,7 +596,10 @@ std::unordered_multimap<int, Node*> SearchThread::iterate_all_nodes_bfs(Node* no
         }
 
 	}
-    return leafNodesMap;
+
+    std::multimap<int, Node*, std::greater<int>> sortedLeafNodesMap(leafNodesMap.begin(), leafNodesMap.end());
+
+    return sortedLeafNodesMap;
 }
 
 void SearchThread::update(NodeDescription& description){

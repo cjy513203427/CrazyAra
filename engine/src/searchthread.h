@@ -179,7 +179,7 @@ public:
     /**
      * @brief iterate all nodes with BFS
     */
-    std::unordered_multimap<int, Node*> iterate_all_nodes_bfs(Node* node);
+    std::multimap<int, Node*, std::greater<int>> iterate_all_nodes_bfs(Node* node);
 
 private:
     /**

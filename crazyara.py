@@ -52,7 +52,8 @@ class CrazyAra:  # Too many instance attributes (25/7)
         self.score_file_path = "score-log.txt"
         self.settings = {
             "UCI_Variant": "crazyhouse",
-            "search_type": "mcts",  # mcts, alpha_beta
+            # "search_type": "mcts",  # mcts, alpha_beta
+            "search_type": "mcgs",  # mcgs
             "ab_depth": 5,  # depth to reach for alpha_beta
             "ab_candidate_moves": 7,  # candidate moves to consider for ab-search, clipped according to NN policy
             # set the context in which the neural networks calculation will be done
