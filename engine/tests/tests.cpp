@@ -167,7 +167,7 @@ TEST_CASE("Anti-Chess StartFEN"){
     state.set(StateConstants::start_fen(ANTI_VARIANT), false, ANTI_VARIANT);
     PlaneStatistics stats = get_planes_statistics(state, false);
 
-//    REQUIRE(StateConstants::NB_VALUES_TOTAL() == 3008); // no last move planes
+    // REQUIRE(StateConstants::NB_VALUES_TOTAL() == 3008); // no last move planes
     REQUIRE(StateConstants::NB_VALUES_TOTAL() == 4032); // with last move planes
     REQUIRE(stats.maxNum == 1);
     REQUIRE(stats.sum == 224);
@@ -567,7 +567,7 @@ TEST_CASE("6-Men WDL"){
 #endif
 
 TEST_CASE("LABELS length"){
-    StateConstants::init(true);
+    StateConstants::init(true, false);
     REQUIRE(OutputRepresentation::LABELS.size() == size_t(StateConstants::NB_LABELS()));
     REQUIRE(OutputRepresentation::LABELS_MIRRORED.size() == size_t(StateConstants::NB_LABELS()));
 }
@@ -596,6 +596,28 @@ TEST_CASE("Board representation constants"){
 }
 #endif
 
+TEST_CASE("3-fold Repetition"){
+    init();
+    // Blunder by ClassicAra in https://tcec-chess.com/#div=l4&game=100&season=21
+    StateObj state;
+    state.set("1rr3k1/1pp2ppp/p1n5/P2p1b2/3Pn3/R3PNP1/1P3PBP/2R1B1K1 b - - 4 17", false, get_default_variant());
+    string moveB0 = "e4d6";
+    string moveW1 = "f3h4";
+    string moveB1 = "f5e6";
+    string moveW2 = "h4f3";
+    string moveB2 = "e6f5";
+    vector<string> moves = {moveB0, moveW1, moveB1, moveW2, moveB2, moveW1, moveB1, moveW2};
+    float customTerminalValue;
+    TerminalType terminal;
+    for (string move : moves) {
+        state.do_action(state.uci_to_action(move));
+        terminal = state.is_terminal(state.legal_actions().size(), customTerminalValue);
+        REQUIRE(terminal == TERMINAL_NONE);
+    }
+    state.do_action(state.uci_to_action(moveB2));
+    terminal = state.is_terminal(state.legal_actions().size(), customTerminalValue);
+    REQUIRE(terminal == TERMINAL_DRAW);
+}
 
 // ==========================================================================================================
 // ||                                      Blaze-Util Tests                                                ||
@@ -1577,6 +1599,43 @@ TEST_CASE("Crazyhouse Input Planes V3") {
     REQUIRE_THAT(stats.key, Catch::Matchers::WithinRel(474696, 0.001));
     REQUIRE(stats.argMax == 8);
     REQUIRE(state.fen() == string("5rkR/ppp2p1p/3p1Q2/2bP4/2Pnp1N1/3P2pP/PP2n1P1/R2Q1R1K[BPbbn] b - - 3 29"));
+}
+#endif
+
+#ifdef MODE_LICHESS
+TEST_CASE("Atomic Input Planes V3") {
+    init();
+    int variant = StateConstants::variant_to_int("atomic");
+    BoardState state;
+    const uint nbValuesTotal = 80 * StateConstants::NB_SQUARES();
+    state.init(variant, false);
+    // starting position test
+    PlaneStatistics stats = get_planes_statistics(state, false, make_version<3,0,0>(), nbValuesTotal);
+    REQUIRE(stats.sum == 1440);
+    REQUIRE(stats.maxNum == 8);
+    REQUIRE(stats.key == 5932976);
+    REQUIRE(stats.argMax == 4736);
+    REQUIRE(state.fen() == string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
+
+    state.set("r2qk2r/p6p/3p1ppb/3Pp1BP/1p2P1b1/3Q1P2/PPP3P1/R3K2R b KQkq - 1 14", false, variant);
+    string move = "d8b6";
+    state.do_action(state.uci_to_action(move));
+    move = "d3b5";
+    state.do_action(state.uci_to_action(move));
+
+    stats = get_planes_statistics(state, false, make_version<3,0,0>(), nbValuesTotal);
+    REQUIRE(stats.sum == 1433);
+    REQUIRE(stats.maxNum == 7);
+    REQUIRE(stats.key == 5420051);
+    REQUIRE(stats.argMax == 4736);
+    REQUIRE(state.fen() == string("r3k2r/p6p/1q1p1ppb/1Q1Pp1BP/1p2P1b1/5P2/PPP3P1/R3K2R b KQkq - 3 15"));
+
+    stats = get_planes_statistics(state, true, make_version<3,0,0>(), nbValuesTotal);
+    REQUIRE_THAT(stats.sum, Catch::Matchers::WithinRel(516.84, 0.001));
+    REQUIRE(stats.maxNum == 1);
+    REQUIRE_THAT(stats.key, Catch::Matchers::WithinRel(1470726.04, 0.001));
+    REQUIRE(stats.argMax == 8);
+    REQUIRE(state.fen() == string("r3k2r/p6p/1q1p1ppb/1Q1Pp1BP/1p2P1b1/5P2/PPP3P1/R3K2R b KQkq - 3 15"));
 }
 #endif
 

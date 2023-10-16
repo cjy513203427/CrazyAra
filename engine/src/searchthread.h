@@ -218,8 +218,16 @@ private:
      * @return uint_16_t(-1) for no action else custom idx
      */
     ChildIdx select_enhanced_move(Node* currentNode) const;
-    
     /**
+     * @brief get_current_transposition_q_value Returns the Q-value which connects to the transposition node
+     * @param currentNode Current node
+     * @param childIdx child index
+     * @param transposVisits Number of visits connecting to the transposition node
+     * @return Q-Value converted to double
+     */
+    double get_current_transposition_q_value(const Node* currentNode, ChildIdx childIdx, uint_fast32_t transposVisits);
+
+        /**
      * @brief MPV-MCTS Algorithm
      * @param state state
      * @param f_Small small network
@@ -256,7 +264,6 @@ private:
      * @param leaft_state state of leaf
     */
     void update(NodeDescription& description);
-
 };
 
 void run_search_thread(SearchThread* t);

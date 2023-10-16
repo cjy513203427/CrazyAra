@@ -110,6 +110,10 @@ Node* SearchThread::add_new_node_to_tree(StateObj* newState, Node* parentNode, C
 {
     bool transposition;
     Node* newNode = parentNode->add_new_node_to_tree(mapWithMutex, newState, childIdx, searchSettings, transposition);
+    if (newNode->is_terminal()) {
+        nodeBackup = NODE_TERMINAL;
+        return newNode;
+    }
     if (transposition) {
         const float qValue =  parentNode->get_child_node(childIdx)->get_value();
         transpositionValues->add_element(qValue);
@@ -208,7 +212,7 @@ Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description, Node
         if (childIdx == uint16_t(-1)) {
             childIdx = currentNode->select_child_node(searchSettings);
         }
-        currentNode->apply_virtual_loss_to_child(childIdx, searchSettings->virtualLoss);
+        currentNode->apply_virtual_loss_to_child(childIdx, searchSettings);
         trajectoryBuffer.emplace_back(NodeAndIdx(currentNode, childIdx));
 
         nextNode = currentNode->get_child_node(childIdx);
@@ -266,12 +270,13 @@ Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description, Node
         if (nextNode->is_transposition()) {
             nextNode->lock();
             const uint_fast32_t transposVisits = currentNode->get_real_visits(childIdx);
-            const double transposQValue = -currentNode->get_q_sum(childIdx, searchSettings->virtualLoss) / transposVisits;
+            const double transposQValue = currentNode->get_transposition_q_value(searchSettings, childIdx, transposVisits);
+
             if (nextNode->is_transposition_return(transposQValue)) {
-                const float qValue = get_transposition_q_value(transposVisits, transposQValue, nextNode->get_value());
+                const float backupValue = get_transposition_backup_value(transposVisits, transposQValue, nextNode->get_value());
                 nextNode->unlock();
                 description.type = NODE_TRANSPOSITION;
-                transpositionValues->add_element(qValue);
+                transpositionValues->add_element(backupValue);
                 currentNode->unlock();
                 return nextNode;
             }
@@ -318,11 +323,9 @@ void SearchThread::set_nn_results_to_child_nodes()
 {
     size_t batchIdx = 0;
     for (auto node: *newNodes) {
-        if (!node->is_terminal()) {
-            fill_nn_results(batchIdx, net->is_policy_map(), valueOutputs, probOutputs, auxiliaryOutputs, node,
-                            tbHits, rootState->mirror_policy(newNodeSideToMove->get_element(batchIdx)),
-                            searchSettings, rootNode->is_tablebase());
-        }
+        fill_nn_results(batchIdx, net->is_policy_map(), valueOutputs, probOutputs, auxiliaryOutputs, node,
+                        tbHits, rootState->mirror_policy(newNodeSideToMove->get_element(batchIdx)),
+                        searchSettings, rootNode->is_tablebase());
         ++batchIdx;
     }
 }
@@ -336,7 +339,7 @@ void SearchThread::backup_value_outputs()
 
 void SearchThread::backup_collisions() {
     for (size_t idx = 0; idx < collisionTrajectories.size(); ++idx) {
-        backup_collision(searchSettings->virtualLoss, collisionTrajectories[idx]);
+        backup_collision(searchSettings, collisionTrajectories[idx]);
     }
     collisionTrajectories.clear();
 }
@@ -344,8 +347,8 @@ void SearchThread::backup_collisions() {
 bool SearchThread::nodes_limits_ok()
 {
     return (searchLimits->nodes == 0 || (rootNode->get_node_count() < searchLimits->nodes)) &&
-            (searchLimits->simulations == 0 || (rootNode->get_visits() < searchLimits->simulations)) &&
-            (searchLimits->nodesLimit == 0 || (rootNode->get_node_count() < searchLimits->nodesLimit));
+           (searchLimits->simulations == 0 || (rootNode->get_visits() < searchLimits->simulations)) &&
+           (searchLimits->nodesLimit == 0 || (rootNode->get_node_count() < searchLimits->nodesLimit));
 }
 
 bool SearchThread::is_root_node_unsolved()

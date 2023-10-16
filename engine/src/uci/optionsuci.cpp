@@ -112,7 +112,6 @@ void OptionsUCI::init(OptionsMap &o)
 #endif
     o["Centi_Temperature_Decay"]       << Option(92, 0, 100);
     o["Centi_U_Init_Divisor"]          << Option(100, 1, 99999);
-    o["Centi_Virtual_Loss"]            << Option(100, 0, 99999);
 #if defined(MXNET) && defined(TENSORRT)
     o["Context"]                       << Option("gpu", {"cpu", "gpu"});
 #elif defined (TORCH)
@@ -196,6 +195,9 @@ void OptionsUCI::init(OptionsMap &o)
     o["UCI_Variant"]                   << Option(StateConstants::DEFAULT_UCI_VARIANT().c_str(), {StateConstants::DEFAULT_UCI_VARIANT().c_str(), StateConstants::DEFAULT_UCI_VARIANT().c_str()});
 #endif
     o["Use_Raw_Network"]               << Option(false);
+    o["Virtual_Style"]                 << Option("virtual_mix", { "virtual_loss", "virtual_visit", "virtual_offset", "virtual_mix" });
+    o["Virtual_Mix_Threshold"]         << Option(1000, 1, 99999999);
+
     o["Use_MPV_Network"]               << Option(true);
     // additional UCI-Options for RL only
 #ifdef USE_RL
