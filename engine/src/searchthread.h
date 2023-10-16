@@ -179,7 +179,12 @@ public:
     /**
      * @brief iterate all nodes with BFS
     */
-    std::multimap<int, Node*, std::greater<int>> iterate_all_nodes_bfs(Node* node);
+    std::multimap<unsigned int, Node*, std::greater<unsigned int>> iterate_all_nodes_bfs(Node* node);
+    
+    /**
+     * 
+    */
+    std::multimap<std::pair<Key, unsigned int>, Node*> create_mapping_for_small_large_tree(std::multimap<unsigned int, Node*, std::greater<unsigned int>> smallTreeMap, std::multimap<unsigned int, Node*, std::greater<unsigned int>> largeTreeMap);
 
 private:
     /**

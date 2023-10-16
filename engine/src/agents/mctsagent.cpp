@@ -151,8 +151,8 @@ size_t MCTSAgent::init_root_node(StateObj *state)
     }
     else {
         if(netSingleLarge!=nullptr){
-            std::cout<< "net->get_version()"<< version_to_string(net->get_version()) <<std::endl;
-            std::cout<< "netSingleLarge->get_version()"<< version_to_string(netSingleLarge->get_version()) <<std::endl;
+            // std::cout<< "net->get_version()"<< version_to_string(net->get_version()) <<std::endl;
+            // std::cout<< "netSingleLarge->get_version()"<< version_to_string(netSingleLarge->get_version()) <<std::endl;
             rootNodeLarge = create_new_root_node_large(state, netSingleLarge);
         }
         

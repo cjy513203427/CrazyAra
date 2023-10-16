@@ -435,12 +435,33 @@ void run_search_thread(SearchThread* t)
     // Get final rootNode
     Node *rootNodeBFS = t->get_root_node();
     Node *rootNodeLargeBFS = t->get_root_node_large();
-    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
-	std::multimap<int, Node*, std::greater<int>> rootNodeMap = t->iterate_all_nodes_bfs(rootNodeBFS);
-    cout<<"Size of rootNodeMap = "<< rootNodeMap.size()<<endl;
-    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
-    std::multimap<int, Node*, std::greater<int>> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
-    cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
+    // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
+	std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeMap = t->iterate_all_nodes_bfs(rootNodeBFS);
+    //cout<<"Size of rootNodeMap = "<< rootNodeMap.size()<<endl;
+    // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
+    std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
+    //cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
+
+    std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping = t->create_mapping_for_small_large_tree(rootNodeMap ,rootNodeLargeMap);
+    //cout<<"Size of rootNodeMapping = "<< rootNodeMapping.size()<<endl;
+
+    std::multimap<std::pair<Key, unsigned int>, Node*, std::function<bool(const std::pair<Key, unsigned int>&, const std::pair<Key, unsigned int>&)>> sortedRootNodeMapping(
+        rootNodeMapping.begin(),
+        rootNodeMapping.end(),
+        [](const std::pair<Key, unsigned int>& a, const std::pair<Key, unsigned int>& b) -> bool {
+            if (a.first != b.first) {
+                // compare the first key with descending order
+                return a.first > b.first;
+            } else {
+                // compare the second key with descending order
+                return a.second > b.second;
+            }
+        }
+    );
+
+    //cout<<"Size of sortedRootNodeMapping = "<< sortedRootNodeMapping.size()<<endl;
+
+
 }
 
 void SearchThread::backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories) {
@@ -561,7 +582,7 @@ StateObj* SearchThread::select_unevaluated_leafState_priority(Node* rootNode, No
 	return rootState;
 }
 
-std::multimap<int, Node*, std::greater<int>> SearchThread::iterate_all_nodes_bfs(Node* node)
+std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::iterate_all_nodes_bfs(Node* node)
 {
     // a queue for traverse
 	std::queue<Node*> q;
@@ -597,9 +618,32 @@ std::multimap<int, Node*, std::greater<int>> SearchThread::iterate_all_nodes_bfs
 
 	}
 
-    std::multimap<int, Node*, std::greater<int>> sortedLeafNodesMap(leafNodesMap.begin(), leafNodesMap.end());
+    std::multimap<unsigned int, Node*, std::greater<unsigned int>> sortedLeafNodesMap(leafNodesMap.begin(), leafNodesMap.end());
 
     return sortedLeafNodesMap;
+}
+
+std::multimap<std::pair<Key, unsigned int>, Node*> SearchThread::create_mapping_for_small_large_tree(std::multimap<unsigned int, Node*, std::greater<unsigned int>> smallTreeMap, std::multimap<unsigned int, Node*, std::greater<unsigned int>> largeTreeMap){
+    /* 
+        traverse smallTreeMap and largeTreeMap
+        retrieve "hash_key" from nodes (value of map) as a new key of map as first key
+        "visists" as the second key
+		value keeps unchanged
+        return a new map
+        use MapWithMutex ???
+     */
+    mapWithMutex->mtx.lock();
+    std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping;
+
+    smallTreeMap.insert(largeTreeMap.begin(), largeTreeMap.end());
+    for (const auto& pair : smallTreeMap) {
+        // std::cout << pair.first << ": " << pair.second->hash_key() << std::endl;
+        rootNodeMapping.emplace(std::make_pair(pair.second->hash_key(), pair.first), pair.second);
+
+    }
+
+    mapWithMutex->mtx.unlock();
+    return rootNodeMapping;
 }
 
 void SearchThread::update(NodeDescription& description){
