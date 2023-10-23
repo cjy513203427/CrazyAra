@@ -438,31 +438,35 @@ void run_search_thread(SearchThread* t)
     // Get final rootNode
     Node *rootNodeBFS = t->get_root_node();
     Node *rootNodeLargeBFS = t->get_root_node_large();
-    // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
+    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
 	std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeMap = t->iterate_all_nodes_bfs(rootNodeBFS);
     //cout<<"Size of rootNodeMap = "<< rootNodeMap.size()<<endl;
-    // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
+    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
     std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
     //cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
 
-    std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping = t->create_mapping_for_small_large_tree(rootNodeMap ,rootNodeLargeMap);
+    // std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping = t->create_mapping_for_small_large_tree(rootNodeMap ,rootNodeLargeMap);
     //cout<<"Size of rootNodeMapping = "<< rootNodeMapping.size()<<endl;
 
-    std::multimap<std::pair<Key, unsigned int>, Node*, std::function<bool(const std::pair<Key, unsigned int>&, const std::pair<Key, unsigned int>&)>> sortedRootNodeMapping(
-        rootNodeMapping.begin(),
-        rootNodeMapping.end(),
-        [](const std::pair<Key, unsigned int>& a, const std::pair<Key, unsigned int>& b) -> bool {
-            if (a.first != b.first) {
-                // compare the first key with descending order
-                return a.first > b.first;
-            } else {
-                // compare the second key with descending order
-                return a.second > b.second;
-            }
-        }
-    );
+    // std::multimap<std::pair<Key, unsigned int>, Node*, std::function<bool(const std::pair<Key, unsigned int>&, const std::pair<Key, unsigned int>&)>> sortedRootNodeMapping(
+    //     rootNodeMapping.begin(),
+    //     rootNodeMapping.end(),
+    //     [](const std::pair<Key, unsigned int>& a, const std::pair<Key, unsigned int>& b) -> bool {
+    //         if (a.first != b.first) {
+    //             // compare the first key with descending order
+	// 			// TODO not necessary
+    //             return a.first > b.first;
+    //         } else {
+    //             // compare the second key with descending order
+    //             return a.second > b.second;
+    //         }
+    //     }
+    // );
 
     //cout<<"Size of sortedRootNodeMapping = "<< sortedRootNodeMapping.size()<<endl;
+
+
+
 
 
 }
@@ -594,23 +598,35 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
 
 	q.push(node);
 
-
+	vector<Key> keys;
 	while (!q.empty()) {
 		Node* curNode = q.front();
 
 		q.pop();
 
+		curNode->lock();
         NodeData* curData = curNode->get_node_data();
 
 		// std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
 
-        // When node if not evaluated
-
-        if(curData == nullptr){
+        if(curData == nullptr || curNode->is_sorted() == false){
             continue;
         }
 
+		StateObj* newState = curNode->get_state()->clone();
+
+		for (int i = curData->noVisitIdx; i < curNode->get_number_child_nodes(); i++) {
+			newState->do_action(curNode->get_action(i));
+			keys.emplace_back(newState->hash_key());
+			newState->undo_action(curNode->get_action(i));
+		}
+
+        // If a node is leaf node
+        // There are many identical numbers.
+        std::cout << "curData->noVisitIdx: " << curData->noVisitIdx << endl;
+
         uint32_t visists = curNode->get_visits();
+		curNode->unlock();
         leafNodesMap.emplace(visists, curNode);
 
         for (size_t idx = 0; idx < curData->childNodes.size(); ++idx) {

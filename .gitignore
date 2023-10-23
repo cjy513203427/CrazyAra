@@ -148,3 +148,10 @@ engine/3rdparty/blaze
 
 # user
 *.txt.user
+
+# model files
+DeepCrazyhouse/src/training/weights/*.onnx
+DeepCrazyhouse/src/training/weights/*.tar
+
+DeepCrazyhouse/src/training/best-model/*.onnx
+DeepCrazyhouse/src/training/best-model/*.tar
