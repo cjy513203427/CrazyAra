@@ -181,6 +181,12 @@ public:
      * @param node
     */
     std::multimap<unsigned int, Node*, std::greater<unsigned int>> iterate_all_nodes_bfs(Node* node);
+
+	/**
+	 * @brief  sort map based on the number of visits in the small tree using the hash key as the look-up key.
+     * @param treeMap
+	*/
+	std::multimap<std::pair<Key, unsigned int>, Node*> doublekey_map(std::multimap<unsigned int, Node*, std::greater<unsigned int>> treeMap);
     
     /**
      * @brief create mapping between small and large tree

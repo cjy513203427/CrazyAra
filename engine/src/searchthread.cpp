@@ -440,9 +440,41 @@ void run_search_thread(SearchThread* t)
     Node *rootNodeLargeBFS = t->get_root_node_large();
     cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
 	std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeMap = t->iterate_all_nodes_bfs(rootNodeBFS);
+	// Todo: Exclude nodes whose qVal are -1, after excluding, rootNodeMap's size is 0?
+	// get key through hashKey. Need for loop map.
+    
+	std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeDoublekeyMap = t->doublekey_map(rootNodeMap);
+
+
+
+	std::multimap<std::pair<Key, unsigned int>, Node*, std::function<bool(const std::pair<Key, unsigned int>&, const std::pair<Key, unsigned int>&)>> sortedRootNodeMapping(
+		rootNodeDoublekeyMap.begin(),
+		rootNodeDoublekeyMap.end(),
+		 [](const std::pair<Key, unsigned int>& a, const std::pair<Key, unsigned int>& b) -> bool {
+			 if (a.first != b.first) {
+				 // compare the second key with descending order
+				 return a.second > b.second;
+			 } else {
+				 // compare the first key with descending order
+				 return a.first > b.first;
+			 }
+		 }
+	 );
+
+	auto firstElementIterator = sortedRootNodeMapping.begin();
+	// multimap not null
+	if (firstElementIterator != sortedRootNodeMapping.end()) {
+		Key firstKey = firstElementIterator->first.first;
+		std::cout << "First key of the first element: " << firstKey << std::endl;
+		rootNodeLargeBFS->hash_key();
+	}
+	else {
+		std::cout << "Multimap is empty." << std::endl;
+	}
+
     //cout<<"Size of rootNodeMap = "<< rootNodeMap.size()<<endl;
-    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
-    std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
+    //cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
+    //std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
     //cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
 
     // std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping = t->create_mapping_for_small_large_tree(rootNodeMap ,rootNodeLargeMap);
@@ -609,6 +641,7 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
 
 		// std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
 
+        // if(curData == nullptr || curNode->is_sorted() == false || curData->qValues != -1)
         if(curData == nullptr || curNode->is_sorted() == false){
             continue;
         }
@@ -623,7 +656,7 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
 
         // If a node is leaf node
         // There are many identical numbers.
-        std::cout << "curData->noVisitIdx: " << curData->noVisitIdx << endl;
+        //std::cout << "curData->noVisitIdx: " << curData->noVisitIdx << endl;
 
         uint32_t visists = curNode->get_visits();
 		curNode->unlock();
@@ -642,6 +675,18 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
     return sortedLeafNodesMap;
 }
 
+std::multimap<std::pair<Key, unsigned int>, Node*> SearchThread::doublekey_map(std::multimap<unsigned int, Node*, std::greater<unsigned int>> treeMap) {
+	std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping;
+
+	for (const auto& pair : treeMap) {
+		// std::cout << pair.first << ": " << pair.second->hash_key() << std::endl;
+		rootNodeMapping.emplace(std::make_pair(pair.second->hash_key(), pair.first), pair.second);
+
+	}
+
+	return rootNodeMapping;
+}
+
 std::multimap<std::pair<Key, unsigned int>, Node*> SearchThread::create_mapping_for_small_large_tree(std::multimap<unsigned int, Node*, std::greater<unsigned int>> smallTreeMap, std::multimap<unsigned int, Node*, std::greater<unsigned int>> largeTreeMap){
     /* 
         traverse smallTreeMap and largeTreeMap
@@ -649,7 +694,7 @@ std::multimap<std::pair<Key, unsigned int>, Node*> SearchThread::create_mapping_
         "visists" as the second key
 		value keeps unchanged
         return a new map
-        use MapWithMutex ???
+        use MapWithMutex 
      */
     mapWithMutex->mtx.lock();
     std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping;
