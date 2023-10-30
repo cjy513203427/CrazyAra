@@ -472,6 +472,7 @@ void run_search_thread(SearchThread* t)
 		std::cout << "Multimap is empty." << std::endl;
 	}
 
+
     //cout<<"Size of rootNodeMap = "<< rootNodeMap.size()<<endl;
     //cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
     //std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = t->iterate_all_nodes_bfs(rootNodeLargeBFS);
@@ -641,7 +642,6 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
 
 		// std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
 
-        // if(curData == nullptr || curNode->is_sorted() == false || curData->qValues != -1)
         if(curData == nullptr || curNode->is_sorted() == false){
             continue;
         }
