@@ -103,8 +103,7 @@ ENV Z5_PATH /root/z5/
 # Clone the CrazyAra repository
 # Install python dependencies for training the neural network
 RUN cd /root \
-    # && git clone -b jinyao_masterthesis https://github.com/cjy513203427/CrazyAra.git --recursive \
-    && git clone https://github.com/QueensGambit/CrazyAra.git --recursive \
+    && git clone -b jinyao_masterthesis https://github.com/cjy513203427/CrazyAra.git --recursive \
     && cd /root/CrazyAra/DeepCrazyhouse/src/training/ \
     && pip install -r requirements.txt
 
@@ -128,11 +127,11 @@ RUN cd /root/CrazyAra/engine \
     && cd build
 RUN if [ "${FRAMEWORK}" = "pytorch" ]; then \
     cd /root/CrazyAra/engine/build \
-    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUSE_RL=ON -DMODE_CRAZYHOUSE=0 -DMODE_CHESS=1 -DMODE_LICHESS=0 .. \
+    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMODE_CRAZYHOUSE=0 -DMODE_CHESS=1 -DMODE_LICHESS=0 .. \
     && make -j8 ; \
 else \
     cd /root/CrazyAra/engine/build \
-    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUSE_RL=ON -DMODE_CRAZYHOUSE=0 -DMODE_CHESS=1 -DMODE_LICHESS=0 -DBACKEND_TENSORRT_7=ON .. \
+    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMODE_CRAZYHOUSE=0 -DMODE_CHESS=1 -DMODE_LICHESS=0 -DBACKEND_TENSORRT_7=ON .. \
     && make -j8 ; \
 fi
 
