@@ -164,8 +164,6 @@ RUN cd ${WORK_DIR}/model \
     && wget https://github.com/QueensGambit/CrazyAra/releases/download/0.9.5/CrazyAra-rl-model-os-96.zip \
     && unzip CrazyAra-rl-model-os-96.zip
 
-RUN strip --remove-section=.note.ABI-tag /usr/lib/x86_64-linux-gnu/libQt5Core.so.5
-
 # Download cutechess-cli
 # -------------------------------------
 RUN echo "Downloading cutechess-cli..."
