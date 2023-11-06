@@ -177,6 +177,16 @@ public:
     Node* get_starting_node(Node* currentNode, NodeDescription& description, ChildIdx& childIdx);
 
     /**
+     * @brief MPV-MCTS Algorithm
+     * @param state state
+     * @param f_Small small network
+     * @param f_Large large network
+     * @param b_Small budget for small NN
+     * @param b_Large budget for large NN
+    */
+    void mpv_mcts(size_t b_Small, size_t b_Large);
+
+    /**
      * @brief iterate all nodes with BFS
      * @param node
     */
@@ -237,16 +247,6 @@ private:
      */
     double get_current_transposition_q_value(const Node* currentNode, ChildIdx childIdx, uint_fast32_t transposVisits);
 
-        /**
-     * @brief MPV-MCTS Algorithm
-     * @param state state
-     * @param f_Small small network
-     * @param f_Large large network
-     * @param b_Small budget for small NN
-     * @param b_Large budget for large NN
-    */
-    void mpv_mcts(size_t b_Small, size_t b_Large);
-
     /**
      * @brief random select between lowerbound and upperbound
      * @param lowerbound lower bound
@@ -267,7 +267,7 @@ private:
      * @param rootNode rootnode for Small tree
 	   @param rootNodeLarge rootnode for large tree
     */
-    StateObj* select_unevaluated_leafState_priority(Node* rootNode, Node* rootNodeLarge);
+    StateObj* select_unevaluated_leafState_priority();
 
     /**
      * @brief update nodes
