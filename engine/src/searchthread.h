@@ -267,7 +267,7 @@ private:
      * @param rootNode rootnode for Small tree
 	   @param rootNodeLarge rootnode for large tree
     */
-    StateObj* select_unevaluated_leafState_priority();
+    void select_unevaluated_leafState_priority(Node* rootNode);
 
     /**
      * @brief update nodes
