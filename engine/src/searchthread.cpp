@@ -412,7 +412,7 @@ void SearchThread::thread_iteration()
         create_mini_batch(rootNode);
         // create_mini_batch(rootNodeLarge);
         #ifndef SEARCH_UCT
-        cout<<"newNodes->size():"<<newNodes->size()<<endl;
+        // cout<<"newNodes->size():"<<newNodes->size()<<endl;
         if (newNodes->size() != 0) {
             net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
             set_nn_results_to_child_nodes();
@@ -546,7 +546,7 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
 	// Priority means higher visit counts(based on small tree)
 	// For each node have potential nodes, choose important nodes which has the most qvalues. The best move has the most visits. Subsequent nodes and opponent move are also important. Future moves take into account.
     // Get final rootNode
-    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
+    // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeBFS)--------------------------" << endl;
 	std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeMap = this->iterate_all_nodes_bfs(rootNode);
 	// Todo: Exclude nodes whose qVal are -1, after excluding, rootNodeMap's size is 0?
 	// get key through hashKey. Need for loop map.
@@ -569,9 +569,9 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
 		 }
 	 );
 
-    cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
+    // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
     std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = this->iterate_all_nodes_bfs(rootNodeLarge);
-    cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
+    // cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
 
 	std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeLargeDoublekeyMap = this->doublekey_map(rootNodeLargeMap);
 
@@ -581,7 +581,7 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
 		// exclude first node which is rootnode
         //sortedRootNodeMapping.erase(firstElementIterator);
 		Key firstKey = firstElementIterator->first.first;
-		std::cout << "First key of the first element: " << firstKey << std::endl;
+		// std::cout << "First key of the first element: " << firstKey << std::endl;
 
 		// check matched key
 		for (auto it = rootNodeLargeDoublekeyMap.begin(); it != rootNodeLargeDoublekeyMap.end(); ++it) {
@@ -595,7 +595,7 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
 		}
 	}
 	else {
-		std::cout << "Multimap is empty." << std::endl;
+		// std::cout << "Multimap is empty." << std::endl;
 	}
 }
 
