@@ -578,18 +578,25 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
 	if (firstElementIterator != sortedRootNodeMapping.end()) {
 		// exclude first node which is rootnode
         //sortedRootNodeMapping.erase(firstElementIterator);
-		Key firstKey = firstElementIterator->first.first;
+		// Key firstKey = firstElementIterator->first.first;
 		// std::cout << "First key of the first element: " << firstKey << std::endl;
 
 		// check matched key
 		for (auto it = rootNodeLargeDoublekeyMap.begin(); it != rootNodeLargeDoublekeyMap.end(); ++it) {
 			Key currentKey = it->first.first;
 
-			if (currentKey == firstKey) {
-				Node* matchedNode = it->second;
-				size_t num_loop = 0;
-				this->simulation_puct(matchedNode, num_loop);
-			}
+        mapWithMutex->mtx.lock();
+        HashMap::const_iterator itt = mapWithMutex->hashTable.find(currentKey);
+            if (itt!= mapWithMutex->hashTable.end()) {
+                shared_ptr<Node> matchedNode = itt->second.lock();
+            
+                newNodes->add_element(matchedNode.get());
+                newTrajectories.emplace_back(trajectoryBuffer);
+            }
+            
+            mapWithMutex->mtx.unlock();
+                
+			
 		}
 	}
 	else {

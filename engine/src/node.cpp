@@ -769,7 +769,7 @@ Node* Node::add_new_node_to_tree(MapWithMutex* mapWithMutex, StateObj* newState,
     // connect the Node to the parent
     shared_ptr<Node> newNode = make_shared<Node>(newState, searchSettings);
     atomic_store(&d->childNodes[childIdx], newNode);
-    if (searchSettings->useMCGS) {
+    if (searchSettings->useMCGS || searchSettings->useMPVMCTS) {
         mapWithMutex->mtx.lock();
         mapWithMutex->hashTable.insert({d->childNodes[childIdx]->hash_key(), d->childNodes[childIdx]});
         mapWithMutex->mtx.unlock();
