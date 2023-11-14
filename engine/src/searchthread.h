@@ -229,6 +229,7 @@ private:
      */
     Node* get_new_child_to_evaluate(NodeDescription& description, Node* rootNode);
 
+    void backup_values(FixedVector<Node*> *nodes);
     void backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories);
     void backup_values(FixedVector<float>* values, vector<Trajectory>& trajectories);
 

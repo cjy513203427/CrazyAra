@@ -457,6 +457,14 @@ void SearchThread::backup_values(FixedVector<float>* values, vector<Trajectory>&
     trajectories.clear();
 }
 
+void SearchThread::backup_values(FixedVector<Node*> *nodes) {
+    for (size_t idx = 0; idx < nodes->size(); ++idx) {
+        const float value = nodes->get_element(idx)->get_value();
+        backup_value<true>(value, searchSettings, nodes->get_element(idx), false);
+    }
+    nodes->reset_idx();
+}
+
 ChildIdx SearchThread::select_enhanced_move(Node* currentNode) const {
     if (currentNode->is_playout_node() && !currentNode->was_inspected() && !currentNode->is_terminal()) {
 
@@ -506,7 +514,7 @@ void SearchThread::mpv_mcts(size_t b_Small, size_t b_Large){
             update(description);
         }else{
              // S_leaf = SelectUnevaluatedLeafStateByPriority(T_L)
-             select_unevaluated_leafState_priority(rootNode);
+             select_unevaluated_leafState_priority(rootNodeLarge);
              nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
              if(rootNode->get_real_visits() == 0)
                  // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_L)
@@ -545,64 +553,57 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
 	// Priority means higher visit counts(based on small tree)
 	// For each node have potential nodes, choose important nodes which has the most qvalues. The best move has the most visits. Subsequent nodes and opponent move are also important. Future moves take into account.
     // Get final rootNode
-	std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeMap = this->iterate_all_nodes_bfs(rootNode);
 	// Todo: Exclude nodes whose qVal are -1, after excluding, rootNodeMap's size is 0?
 	// get key through hashKey. Need for loop map.
     
-	std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeDoublekeyMap = this->doublekey_map(rootNodeMap);
-
-
-
-	std::multimap<std::pair<Key, unsigned int>, Node*, std::function<bool(const std::pair<Key, unsigned int>&, const std::pair<Key, unsigned int>&)>> sortedRootNodeMapping(
-		rootNodeDoublekeyMap.begin(),
-		rootNodeDoublekeyMap.end(),
-		 [](const std::pair<Key, unsigned int>& a, const std::pair<Key, unsigned int>& b) -> bool {
-			 if (a.first != b.first) {
-				 // compare the second key with descending order
-				 return a.second > b.second;
-			 } else {
-				 // compare the first key with descending order
-				 return a.first > b.first;
-			 }
-		 }
-	 );
 
     // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
     std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = this->iterate_all_nodes_bfs(rootNodeLarge);
     // cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
 
+    // store visits from small tree and node from large tree
+    std::multimap <unsigned int, Node*, std::greater<unsigned int>> combinedRootNodeLargeMap;
+
 	std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeLargeDoublekeyMap = this->doublekey_map(rootNodeLargeMap);
 
-	auto firstElementIterator = sortedRootNodeMapping.begin();
-	// multimap not null
-	if (firstElementIterator != sortedRootNodeMapping.end()) {
-		// exclude first node which is rootnode
-        //sortedRootNodeMapping.erase(firstElementIterator);
-		// Key firstKey = firstElementIterator->first.first;
+	//auto firstElementIterator = sortedRootNodeMapping.begin();
+	auto firstElementIterator = rootNodeLargeMap.begin();
 		// std::cout << "First key of the first element: " << firstKey << std::endl;
 
 		// check matched key
 		for (auto it = rootNodeLargeDoublekeyMap.begin(); it != rootNodeLargeDoublekeyMap.end(); ++it) {
 			Key currentKey = it->first.first;
 
-        mapWithMutex->mtx.lock();
-        HashMap::const_iterator itt = mapWithMutex->hashTable.find(currentKey);
+            mapWithMutex->mtx.lock();
+            HashMap::const_iterator itt = mapWithMutex->hashTable.find(currentKey);
             if (itt!= mapWithMutex->hashTable.end()) {
                 shared_ptr<Node> matchedNode = itt->second.lock();
-            
-                newNodes->add_element(matchedNode.get());
-                newTrajectories.emplace_back(trajectoryBuffer);
+
+                if(it->first.second == 0){
+                    combinedRootNodeLargeMap.emplace(matchedNode->get_visits(), it->second);
+                }
+
+ 
+
             }
             
             mapWithMutex->mtx.unlock();
                 
 			
 		}
-	}
-	else {
-		// std::cout << "Multimap is empty." << std::endl;
-	}
+
+
+		if (combinedRootNodeLargeMap.size() > 0 && combinedRootNodeLargeMap.begin()->second!=nullptr) {
+            Node * newNode = combinedRootNodeLargeMap.begin()->second;
+            newNode->get_state()->get_state_planes(true, inputPlanes + newNodes->size() * net->get_nb_input_values_total(), net->get_version());
+            newNodeSideToMove->add_element(newNode->get_state()->side_to_move());
+			newNodes->add_element(newNode);
+
+		}
+     
+
 }
+
 
 std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::iterate_all_nodes_bfs(Node* node)
 {
@@ -697,8 +698,10 @@ std::multimap<std::pair<Key, unsigned int>, Node*> SearchThread::create_mapping_
 }
 
 void SearchThread::update(NodeDescription& description){
-    backup_value_outputs();
-    backup_collisions();
+    // backup_value_outputs();
+    // backup_collisions();
+
+    backup_values(newNodes.get());
 }
 
 void node_assign_value(Node *node, const float* valueOutputs, size_t& tbHits, size_t batchIdx, bool isRootNodeTB)

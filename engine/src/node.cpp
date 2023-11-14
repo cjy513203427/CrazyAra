@@ -85,7 +85,7 @@ void Node::set_auxiliary_outputs(const float* auxiliaryOutputs)
 }
 #endif
 
-Node::Node(StateObj* state, const SearchSettings* searchSettings):
+Node::Node(StateObj* state, const SearchSettings* searchSettings, Node* parentNode, ChildIdx parentNodeIdx):
     legalActions(state->legal_actions()),
     key(state->hash_key()),
     valueSum(0),
@@ -99,7 +99,9 @@ Node::Node(StateObj* state, const SearchSettings* searchSettings):
     isTerminal(false),
     isTablebase(false),
     hasNNResults(false),
-    sorted(false)
+    sorted(false),
+    parentNode(parentNode),
+    parentNodeIdx(parentNodeIdx)
 {
     // specify the number of direct child nodes of this node
     check_for_terminal(state);
@@ -1083,6 +1085,17 @@ Node* Node::get_child_node(ChildIdx childIdx)
 {
     return d->childNodes[childIdx].get();
 }
+
+Node *Node::get_parent_node()
+{
+    return parentNode;
+}
+
+ChildIdx Node::get_parent_node_idx()
+{
+    return parentNodeIdx;
+}
+
 
 vector<shared_ptr<Node>> Node::get_child_nodes(){
     if (d==nullptr) {

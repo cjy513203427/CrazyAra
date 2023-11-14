@@ -110,6 +110,9 @@ private:
     double valueSum;
 
     unique_ptr<NodeData> d;
+
+    Node* parentNode;
+    ChildIdx parentNodeIdx;
 #ifdef MCTS_STORE_STATES
     unique_ptr<StateObj> state;
 #endif
@@ -166,7 +169,7 @@ public:
      * @param searchSettings Pointer to the searchSettings
      */
     Node(StateObj *state,
-         const SearchSettings* searchSettings);
+         const SearchSettings* searchSettings, Node* parentNode = nullptr, ChildIdx parentNodeIdx = -1);
 
     /**
      * @brief Node simple constructor which is used for graph structure
@@ -192,6 +195,10 @@ public:
      * @return child node
      */
     Node* get_child_node(ChildIdx childIdx);
+
+    Node* get_parent_node();
+
+    ChildIdx get_parent_node_idx();
 
     /**
      * @brief get all child nodes
@@ -893,6 +900,34 @@ void backup_value(float value, const SearchSettings* searchSettings, const Traje
         else {
             targetQValue = 0;
         }
+    }
+}
+
+template <bool freeBackup>
+void backup_value(float value, const SearchSettings* searchSettings, Node* node, bool solveForTerminal) {
+    double targetQValue = 0;
+    while(node!= nullptr){
+        if (targetQValue != 0) {
+            const uint_fast32_t transposVisits = node->get_real_visits(node->get_parent_node_idx());
+            if (transposVisits != 0) {
+                const double transposQValue = node->get_transposition_q_value(searchSettings, node->get_parent_node_idx(), transposVisits);
+                value = get_transposition_backup_value(transposVisits, transposQValue, targetQValue);
+            }
+        }
+        if (searchSettings->searchPlayerMode == MODE_TWO_PLAYER) {
+                value = -value;
+        }
+        freeBackup ? node->revert_virtual_loss_and_update<true>(node->get_parent_node_idx(), value, searchSettings, solveForTerminal) :
+                   node->revert_virtual_loss_and_update<false>(node->get_parent_node_idx(), value, searchSettings, solveForTerminal);
+
+        if (node->is_transposition()) {
+            targetQValue = node->get_value();
+        }
+        else {
+            targetQValue = 0;
+        }
+
+        node = node->get_parent_node();
     }
 }
 
