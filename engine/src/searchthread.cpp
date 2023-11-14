@@ -625,6 +625,10 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
 		StateObj* newState = curNode->get_state()->clone();
 
 		for (int i = curData->noVisitIdx; i < curNode->get_number_child_nodes(); i++) {
+            Action action = curNode->get_action(i);
+            if(action == MOVE_NULL){
+                continue;
+            }
 			newState->do_action(curNode->get_action(i));
 			keys.emplace_back(newState->hash_key());
 			newState->undo_action(curNode->get_action(i));
