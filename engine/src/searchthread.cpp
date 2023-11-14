@@ -629,9 +629,9 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
             if(action == MOVE_NULL){
                 continue;
             }
-			newState->do_action(curNode->get_action(i));
+			newState->do_action(action);
 			keys.emplace_back(newState->hash_key());
-			newState->undo_action(curNode->get_action(i));
+			newState->undo_action(action);
 		}
 
         // If a node is leaf node
