@@ -29,6 +29,7 @@
 #define INPUTREPRESENTATION_H
 
 #include "board.h"
+#include "node.h"
 
 /**
  * @brief board_to_planes Converts the given board representation into the plane representation.
@@ -64,6 +65,14 @@ inline bool flip_board(const Board& pos, SideToMove sideToMove)
 #endif
     return sideToMove != FIRST_PLAYER_IDX;
 }
+
+struct FeatureData {
+	Trajectory trajectory;
+	DynamicVector<float> qValues;
+	DynamicVector<float> policyProbSmall;
+};
+
+inline FeatureData retrieve_additional_features(Node *node);
 
 
 #endif // INPUTREPRESENTATION_H

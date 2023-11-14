@@ -30,6 +30,22 @@
 #include "sfutil.h"
 using namespace std;
 
+
+
+
+inline FeatureData retrieve_additional_features(Node *node) {
+	Trajectory trajectory = node->nodeAndBudget.curTrajectory;
+	DynamicVector<float> qVals = node->get_node_data()->qValues;
+	DynamicVector<float> policyProbSmall = node->get_policy_prob_small();
+
+	FeatureData featureData;
+	featureData.trajectory = trajectory;
+	featureData.qValues = qVals;
+	featureData.policyProbSmall = policyProbSmall;
+
+	return featureData;
+}
+
 inline void set_bits_from_bitmap(Bitboard bitboard, float *curIt, bool flipBoard) {
     if (flipBoard) {
         bitboard = flip_vertical(bitboard);

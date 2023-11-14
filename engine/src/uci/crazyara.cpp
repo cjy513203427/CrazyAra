@@ -569,16 +569,21 @@ bool CrazyAra::is_ready()
 #endif
         netSingle = create_new_net_single(string(Options["Model_Directory"]));
         netSingle->validate_neural_network();
-		netSingleLarge = create_new_net_single(string(Options["Large_Model_Directory"]));
-		netSingleLarge->validate_neural_network();
+
+        if(searchSettings.useMPVMCTS){
+            netSingleLarge = create_new_net_single(string(Options["Large_Model_Directory"]));
+            netSingleLarge->validate_neural_network();
+            netBatchesLarge = create_new_net_batches(string(Options["Large_Model_Directory"]));
+		    netBatchesLarge.front()->validate_neural_network();
+        }
+
         netBatches = create_new_net_batches(string(Options["Model_Directory"]));
         netBatches.front()->validate_neural_network();        
 		
 		netBatchesSmall = create_new_net_batches(string(Options["Small_Model_Directory"]));
         netBatchesSmall.front()->validate_neural_network();
 
-		netBatchesLarge = create_new_net_batches(string(Options["Large_Model_Directory"]));
-		netBatchesLarge.front()->validate_neural_network();
+        
 
         MCTSAgentType type = searchSettings.useMPVMCTS ? MCTSAgentType::kSmallLarge : MCTSAgentType::kDefault;
 

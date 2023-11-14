@@ -82,6 +82,8 @@ struct NodeAndBudget {
     Trajectory curTrajectory;
     NodeAndBudget(Node* node, uint_fast16_t budget, StateObj* state) :
         node(node), budget(budget), curState(state) {}
+
+	NodeAndBudget() = default;
 };
 
 inline VirtualStyle get_virtual_style(const SearchSettings* searchSettings, uint_fast32_t visits) {
@@ -124,6 +126,7 @@ private:
     bool sorted;
 
 public:
+    NodeAndBudget nodeAndBudget;
     // for tree structure
     int value;
     std::vector<Node*> children;
