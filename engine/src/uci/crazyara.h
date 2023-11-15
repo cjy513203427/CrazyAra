@@ -100,7 +100,6 @@ private:
     bool useRawNetwork;
     bool networkLoaded;
     bool ongoingSearch;
-    bool is960;
     bool changedUCIoption;
 
 public:
