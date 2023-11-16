@@ -94,14 +94,14 @@ public:
      */
     SearchThread(NeuralNetAPI* netBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
 
-		/**
-	 * @brief SearchThread
-	 * @param netSmallBatch Network API object which provides the prediction of the small neural network
-	   @param netLargeBatch Network API object which provides the prediction of the large neural network
-	 * @param searchSettings Given settings for this search run
-	 * @param MapWithMutex Handle to the hash table
-	 */
-	SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
+    /**
+         * @brief SearchThread
+         * @param netSmallBatch Network API object which provides the prediction of the small neural network
+           @param netLargeBatch Network API object which provides the prediction of the large neural network
+         * @param searchSettings Given settings for this search run
+         * @param MapWithMutex Handle to the hash table
+         */
+    SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
 
     /**
      * @brief create_mini_batch Creates a mini-batch of new unexplored nodes.
@@ -190,13 +190,13 @@ public:
      * @brief iterate all nodes with BFS
      * @param node
     */
-    std::multimap<unsigned int, Node*, std::greater<unsigned int>> iterate_all_nodes_bfs(Node* node);
+    std::multimap<Key, std::pair<Node*, ChildIdx>> iterate_all_nodes_bfs(Node* node);
 
-	/**
-	 * @brief  sort map based on the number of visits in the small tree using the hash key as the look-up key.
+    /**
+     * @brief  sort map based on the number of visits in the small tree using the hash key as the look-up key.
      * @param treeMap
-	*/
-	std::multimap<std::pair<Key, unsigned int>, Node*> doublekey_map(std::multimap<unsigned int, Node*, std::greater<unsigned int>> treeMap);
+    */
+    std::multimap<std::pair<Key, unsigned int>, Node*> doublekey_map(std::multimap<unsigned int, Node*, std::greater<unsigned int>> treeMap);
     
     /**
      * @brief create mapping between small and large tree
@@ -266,7 +266,7 @@ private:
     /**
      * @brief select unexpanded leaf state by priority
      * @param rootNode rootnode for Small tree
-	   @param rootNodeLarge rootnode for large tree
+           @param rootNodeLarge rootnode for large tree
     */
     void select_unevaluated_leafState_priority(Node* rootNode);
 

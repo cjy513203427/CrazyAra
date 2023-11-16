@@ -426,6 +426,8 @@ public:
      */
     Node* add_new_node_to_tree(MapWithMutex* mapWithMutex, StateObj* newState, ChildIdx childIdx, const SearchSettings* searchSettings, bool& transposition);
 
+    void connect_child_node(shared_ptr<Node> newNode, ChildIdx childIdx);
+
     void add_transposition_parent_node();
 
     /**
@@ -917,6 +919,8 @@ void backup_value(float value, const SearchSettings* searchSettings, Node* node,
         if (searchSettings->searchPlayerMode == MODE_TWO_PLAYER) {
                 value = -value;
         }
+        // we also use apply virutal loss to child here, because the visit count hasn't been incremented before
+        node->apply_virtual_loss_to_child(parentNodeIdx, searchSettings);
         freeBackup ? node->revert_virtual_loss_and_update<true>(parentNodeIdx, value, searchSettings, solveForTerminal) :
                    node->revert_virtual_loss_and_update<false>(parentNodeIdx, value, searchSettings, solveForTerminal);
 

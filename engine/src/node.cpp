@@ -738,6 +738,11 @@ void Node::set_value(float value)
     this->valueSum = value * this->realVisitsSum;
 }
 
+void Node::connect_child_node(shared_ptr<Node> newNode, ChildIdx childIdx)
+{
+    atomic_store(&d->childNodes[childIdx], newNode);
+}
+
 Node* Node::add_new_node_to_tree(MapWithMutex* mapWithMutex, StateObj* newState, ChildIdx childIdx, const SearchSettings* searchSettings, bool& transposition)
 {
      if(searchSettings->useMCGS) {

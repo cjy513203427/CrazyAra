@@ -66,10 +66,10 @@ SearchThread::SearchThread(NeuralNetAPI *netBatch, const SearchSettings* searchS
 
 
 SearchThread::SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex) :
-	SearchThread(netSmallBatch, searchSettings, mapWithMutex)
-	
+    SearchThread(netSmallBatch, searchSettings, mapWithMutex)
+
 {
-	nnLarge = make_unique<NeuralNetAPIUser>(netLargeBatch);
+    nnLarge = make_unique<NeuralNetAPIUser>(netLargeBatch);
 }
 
 
@@ -347,8 +347,8 @@ void SearchThread::backup_collisions() {
 bool SearchThread::nodes_limits_ok()
 {
     return (searchLimits->nodes == 0 || (rootNode->get_node_count() < searchLimits->nodes)) &&
-           (searchLimits->simulations == 0 || (rootNode->get_visits() < searchLimits->simulations)) &&
-           (searchLimits->nodesLimit == 0 || (rootNode->get_node_count() < searchLimits->nodesLimit));
+            (searchLimits->simulations == 0 || (rootNode->get_visits() < searchLimits->simulations)) &&
+            (searchLimits->nodesLimit == 0 || (rootNode->get_node_count() < searchLimits->nodesLimit));
 }
 
 bool SearchThread::is_root_node_unsolved()
@@ -411,13 +411,13 @@ void SearchThread::thread_iteration()
     }else{
         create_mini_batch(rootNode);
         // create_mini_batch(rootNodeLarge);
-        #ifndef SEARCH_UCT
+#ifndef SEARCH_UCT
         if (newNodes->size() != 0) {
             net->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
             set_nn_results_to_child_nodes();
             
         }
-        #endif
+#endif
         backup_value_outputs();
         backup_collisions();
     }
@@ -497,13 +497,13 @@ void SearchThread::mpv_mcts(size_t b_Small, size_t b_Large){
         actionsBuffer.clear();
         trajectoryBuffer.clear();
         // if i in list
-		bool found = false;
-		for (const int &element : list) {
-			if (element == i) {
-				found = true;
-				break;
-			}
-		}
+        bool found = false;
+        for (const int &element : list) {
+            if (element == i) {
+                found = true;
+                break;
+            }
+        }
 
         if(found){
             // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_S)
@@ -514,16 +514,16 @@ void SearchThread::mpv_mcts(size_t b_Small, size_t b_Large){
             // Update(T_S, s_leaf, (p, v))
             update(description);
         }else{
-             // S_leaf = SelectUnevaluatedLeafStateByPriority(T_L)
-             select_unevaluated_leafState_priority(rootNodeLarge);
-             nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
-             if(rootNode->get_real_visits() == 0)
-                 // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_L)
-                 select_unevaluated_leafState_puct(rootNodeLarge);
-             // (p, v) = f_L (s_leaf)
-             set_nn_results_to_child_nodes();
-             // Update(T_L, s_leaf, (p, v))
-             update(description);
+            // S_leaf = SelectUnevaluatedLeafStateByPriority(T_L)
+            select_unevaluated_leafState_priority(rootNodeLarge);
+            nnLarge->get_net()->predict(inputPlanes, valueOutputs, probOutputs, auxiliaryOutputs);
+            if(rootNode->get_real_visits() == 0)
+                // S_leaf = SelectUnevaluatedLeafStateByPUCT(T_L)
+                select_unevaluated_leafState_puct(rootNodeLarge);
+            // (p, v) = f_L (s_leaf)
+            set_nn_results_to_child_nodes();
+            // Update(T_L, s_leaf, (p, v))
+            update(description);
         }
     }
 }
@@ -533,15 +533,15 @@ vector<int> SearchThread::randomly_select(int lowerbound, int upperbound, int nu
     random_device rd;
     mt19937 gen(rd());
     // generate random num
-    uniform_int_distribution<> dis(lowerbound, upperbound); 
-  
-    vector<int> selections;  
-    for (int i = 0; i < num_selections; ++i) {  
-        selections.push_back(dis(gen));  
-    }  
-  
-  
-    return selections; 
+    uniform_int_distribution<> dis(lowerbound, upperbound);
+
+    vector<int> selections;
+    for (int i = 0; i < num_selections; ++i) {
+        selections.push_back(dis(gen));
+    }
+
+
+    return selections;
 }  
 
 void SearchThread::select_unevaluated_leafState_puct(Node* rootNode){
@@ -551,104 +551,109 @@ void SearchThread::select_unevaluated_leafState_puct(Node* rootNode){
 }
 
 void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
-	// Priority means higher visit counts(based on small tree)
-	// For each node have potential nodes, choose important nodes which has the most qvalues. The best move has the most visits. Subsequent nodes and opponent move are also important. Future moves take into account.
+    // Priority means higher visit counts(based on small tree)
+    // For each node have potential nodes, choose important nodes which has the most qvalues. The best move has the most visits. Subsequent nodes and opponent move are also important. Future moves take into account.
     // Get final rootNode
-	// Todo: Exclude nodes whose qVal are -1, after excluding, rootNodeMap's size is 0?
-	// get key through hashKey. Need for loop map.
+    // Todo: Exclude nodes whose qVal are -1, after excluding, rootNodeMap's size is 0?
+    // get key through hashKey. Need for loop map.
     
 
     // cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
-    std::multimap<unsigned int, Node*, std::greater<unsigned int>> rootNodeLargeMap = this->iterate_all_nodes_bfs(rootNodeLarge);
+    std::multimap<Key, std::pair<Node*, ChildIdx>> rootNodeLargeMap = this->iterate_all_nodes_bfs(rootNodeLarge);
     // cout<<"Size of rootNodeLargeMap = "<< rootNodeLargeMap.size()<<endl;
 
     // store visits from small tree and node from large tree
-    std::multimap <unsigned int, Node*, std::greater<unsigned int>> combinedRootNodeLargeMap;
+    std::multimap <unsigned int, std::pair<Node*, ChildIdx>, std::greater<unsigned int>> combinedRootNodeLargeMap;
 
-	std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeLargeDoublekeyMap = this->doublekey_map(rootNodeLargeMap);
+//    std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeLargeDoublekeyMap = this->doublekey_map(rootNodeLargeMap);
 
-	//auto firstElementIterator = sortedRootNodeMapping.begin();
-	auto firstElementIterator = rootNodeLargeMap.begin();
-		// std::cout << "First key of the first element: " << firstKey << std::endl;
+    //auto firstElementIterator = sortedRootNodeMapping.begin();
+    auto firstElementIterator = rootNodeLargeMap.begin();
+    // std::cout << "First key of the first element: " << firstKey << std::endl;
 
-		// check matched key
-		for (auto it = rootNodeLargeDoublekeyMap.begin(); it != rootNodeLargeDoublekeyMap.end(); ++it) {
-			Key currentKey = it->first.first;
+    // check matched key
+    for (auto it = rootNodeLargeMap.begin(); it != rootNodeLargeMap.end(); ++it) {
+        Key currentKey = it->first;
 
-            mapWithMutex->mtx.lock();
-            HashMap::const_iterator itt = mapWithMutex->hashTable.find(currentKey);
-            if (itt!= mapWithMutex->hashTable.end()) {
-                shared_ptr<Node> matchedNode = itt->second.lock();
-
-                if(it->first.second == 0){
-                    combinedRootNodeLargeMap.emplace(matchedNode->get_visits(), it->second);
-                }
-
- 
-
+        mapWithMutex->mtx.lock();
+        HashMap::const_iterator itt = mapWithMutex->hashTable.find(currentKey);
+        if (itt != mapWithMutex->hashTable.end()) {
+            shared_ptr<Node> matchedNode = itt->second.lock();
+            if (matchedNode->get_node_data() != nullptr) {
+                combinedRootNodeLargeMap.emplace(matchedNode->get_visits(), std::make_pair(it->second.first, it->second.second));
             }
-            
-            mapWithMutex->mtx.unlock();
-                
-			
-		}
+        }
+
+        mapWithMutex->mtx.unlock();
 
 
-		if (combinedRootNodeLargeMap.size() > 0 && combinedRootNodeLargeMap.begin()->second!=nullptr) {
-            Node * newNode = combinedRootNodeLargeMap.begin()->second;
-            newNode->get_state()->get_state_planes(true, inputPlanes + newNodes->size() * net->get_nb_input_values_total(), net->get_version());
-            newNodeSideToMove->add_element(newNode->get_state()->side_to_move());
-			newNodes->add_element(newNode);
+    }
 
-		}
-     
+
+    if (combinedRootNodeLargeMap.size() > 0 && combinedRootNodeLargeMap.begin()->second.first!=nullptr) {
+        // retrieve the parent node
+        Node * parentNode = combinedRootNodeLargeMap.begin()->second.first;
+        const ChildIdx childIdx =  combinedRootNodeLargeMap.begin()->second.second;
+        // create a new node
+        StateObj* state = parentNode->get_state();
+        state->do_action(parentNode->get_action(childIdx));
+        shared_ptr<Node> newNode = make_shared<Node>(state, searchSettings, parentNode, childIdx);
+        state->get_state_planes(true, inputPlanes + newNodes->size() * net->get_nb_input_values_total(), net->get_version());
+        newNodeSideToMove->add_element(state->side_to_move());
+        state->undo_action(parentNode->get_action(childIdx));
+        // connect the Node to the parent
+        parentNode->fully_expand_node();
+        parentNode->connect_child_node(newNode, childIdx);
+        newNodes->add_element(newNode.get());
+
+    }
+
 
 }
 
 
-std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::iterate_all_nodes_bfs(Node* node)
+std::multimap<Key, std::pair<Node*, ChildIdx>> SearchThread::iterate_all_nodes_bfs(Node* node)
 {
     // a queue for traverse
-	std::queue<Node*> q;
+    std::queue<Node*> q;
     // key: number of the visits, value: node pointer which wants to be evaluated
-    std::multimap<int, Node*> leafNodesMap;
+    std::multimap<Key, std::pair<Node*, ChildIdx>> leafNodesMap;
 
-	q.push(node);
+    q.push(node);
 
-	vector<Key> keys;
-	while (!q.empty()) {
-		Node* curNode = q.front();
+    vector<Key> keys;
+    while (!q.empty()) {
+        Node* curNode = q.front();
 
-		q.pop();
+        q.pop();
 
-		
+
         NodeData* curData = curNode->get_node_data();
 
-		// std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
+        // std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
 
         //if(curData == nullptr || curNode->is_sorted() == false){
-		if (curData == nullptr) {
+        if (curData == nullptr) {
             continue;
         }
 
-		StateObj* newState = curNode->get_state()->clone();
+        StateObj* newState = curNode->get_state()->clone();
 
-		for (int i = curData->noVisitIdx; i < curNode->get_number_child_nodes(); i++) {
-            Action action = curNode->get_action(i);
+        for (ChildIdx idx = curData->noVisitIdx; idx < curNode->get_number_child_nodes(); idx++) {
+            Action action = curNode->get_action(idx);
             if(action == MOVE_NULL){
                 continue;
             }
-			newState->do_action(action);
-			keys.emplace_back(newState->hash_key());
-			newState->undo_action(action);
-		}
+            newState->do_action(action);
+            keys.emplace_back(newState->hash_key());
+            leafNodesMap.emplace(newState->hash_key(), std::make_pair(curNode, idx));
+            newState->undo_action(action);
+
+        }
 
         // If a node is leaf node
         // There are many identical numbers.
         //std::cout << "curData->noVisitIdx: " << curData->noVisitIdx << endl;
-
-        uint32_t visists = curNode->get_visits();
-        leafNodesMap.emplace(visists, curNode);
 
         for (size_t idx = 0; idx < curData->childNodes.size(); ++idx) {
             if (curData->childNodes[idx] != nullptr) {
@@ -656,33 +661,30 @@ std::multimap<unsigned int, Node*, std::greater<unsigned int>> SearchThread::ite
             }
         }
 
-	}
-
-    std::multimap<unsigned int, Node*, std::greater<unsigned int>> sortedLeafNodesMap(leafNodesMap.begin(), leafNodesMap.end());
-
-    return sortedLeafNodesMap;
+    }
+    return leafNodesMap;
 }
 
 std::multimap<std::pair<Key, unsigned int>, Node*> SearchThread::doublekey_map(std::multimap<unsigned int, Node*, std::greater<unsigned int>> treeMap) {
-	std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping;
+    std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping;
 
-	for (const auto& pair : treeMap) {
-		// std::cout << pair.first << ": " << pair.second->hash_key() << std::endl;
-		rootNodeMapping.emplace(std::make_pair(pair.second->hash_key(), pair.first), pair.second);
+    for (const auto& pair : treeMap) {
+        // std::cout << pair.first << ": " << pair.second->hash_key() << std::endl;
+        rootNodeMapping.emplace(std::make_pair(pair.second->hash_key(), pair.first), pair.second);
 
-	}
+    }
 
-	return rootNodeMapping;
+    return rootNodeMapping;
 }
 
 std::multimap<std::pair<Key, unsigned int>, Node*> SearchThread::create_mapping_for_small_large_tree(std::multimap<unsigned int, Node*, std::greater<unsigned int>> smallTreeMap, std::multimap<unsigned int, Node*, std::greater<unsigned int>> largeTreeMap){
-    /* 
+    /*
         traverse smallTreeMap and largeTreeMap
         retrieve "hash_key" from nodes (value of map) as a new key of map as first key
         "visists" as the second key
-		value keeps unchanged
+                value keeps unchanged
         return a new map
-        use MapWithMutex 
+        use MapWithMutex
      */
     mapWithMutex->mtx.lock();
     std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeMapping;
@@ -703,7 +705,7 @@ void SearchThread::update(NodeDescription& description){
     // backup_collisions();
 
     backup_values(newNodes.get());
-//    newNodes->reset_idx();
+    //    newNodes->reset_idx();
 }
 
 void node_assign_value(Node *node, const float* valueOutputs, size_t& tbHits, size_t batchIdx, bool isRootNodeTB)
