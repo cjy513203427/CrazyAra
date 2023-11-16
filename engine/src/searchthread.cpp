@@ -512,7 +512,8 @@ void SearchThread::mpv_mcts(size_t b_Small, size_t b_Large){
             // (p, v) = f_S (s_leaf)
             set_nn_results_to_child_nodes();
             // Update(T_S, s_leaf, (p, v))
-            update(description);
+            backup_value_outputs();
+            backup_collisions();
         }else{
             // S_leaf = SelectUnevaluatedLeafStateByPriority(T_L)
             select_unevaluated_leafState_priority(rootNodeLarge);
@@ -704,8 +705,8 @@ void SearchThread::update(NodeDescription& description){
     // backup_value_outputs();
     // backup_collisions();
 
-    backup_values(newNodes.get());
-    //    newNodes->reset_idx();
+     backup_values(newNodes.get());
+//        newNodes->reset_idx();
 }
 
 void node_assign_value(Node *node, const float* valueOutputs, size_t& tbHits, size_t batchIdx, bool isRootNodeTB)
