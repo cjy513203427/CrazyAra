@@ -150,7 +150,7 @@ size_t MCTSAgent::init_root_node(StateObj *state)
         info_string(nodesPreSearch, "nodes of former tree will be reused");
     }
     else {
-        if(netSingleLarge!=nullptr){
+        if(searchSettings->useMPVMCTS){
             // std::cout<< "net->get_version()"<< version_to_string(net->get_version()) <<std::endl;
             // std::cout<< "netSingleLarge->get_version()"<< version_to_string(netSingleLarge->get_version()) <<std::endl;
             rootNodeLarge = create_new_root_node_large(state, netSingleLarge);
@@ -390,7 +390,7 @@ void MCTSAgent::run_mcts_search()
     for (size_t i = 0; i < searchSettings->threads; ++i) {
         searchThreads[i]->set_root_node(rootNode.get());
 
-        if(netSingleLarge!=nullptr){
+        if(searchSettings->useMPVMCTS){
             searchThreads[i]->set_root_node_large(rootNodeLarge.get());
         }
         searchThreads[i]->set_root_state(rootState.get());
