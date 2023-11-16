@@ -133,8 +133,8 @@ void OptionsUCI::init(OptionsMap &o)
 #else
     // o["Model_Directory"]               << Option(string("model/" + engineName + "/" + StateConstants::DEFAULT_UCI_VARIANT()).c_str());
     // o["Model_Directory"]               << Option(string("Small_Large_Models/small/").c_str());
-    o["Model_Directory"]               << Option(string("Small_Large_Models/normal/").c_str());
-    // o["Model_Directory"]               << Option(string("Small_Large_Models/large/").c_str());
+    // o["Model_Directory"]               << Option(string("Small_Large_Models/normal/").c_str());
+    o["Model_Directory"]               << Option(string("Small_Large_Models/large/").c_str());
     o["Small_Model_Directory"]               << Option(string("Small_Large_Models/small/").c_str());
     o["Large_Model_Directory"]               << Option(string("Small_Large_Models/large/").c_str());
 #endif
