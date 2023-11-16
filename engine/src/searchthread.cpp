@@ -602,7 +602,6 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
         shared_ptr<Node> newNode = make_shared<Node>(state, searchSettings, parentNode, childIdx);
         state->get_state_planes(true, inputPlanes + newNodes->size() * net->get_nb_input_values_total(), net->get_version());
         newNodeSideToMove->add_element(state->side_to_move());
-        state->undo_action(parentNode->get_action(childIdx));
         // connect the Node to the parent
         parentNode->fully_expand_node();
         parentNode->connect_child_node(newNode, childIdx);
@@ -629,7 +628,6 @@ std::multimap<Key, std::pair<Node*, ChildIdx>> SearchThread::iterate_all_nodes_b
 
         q.pop();
 
-
         NodeData* curData = curNode->get_node_data();
 
         // std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
@@ -639,20 +637,17 @@ std::multimap<Key, std::pair<Node*, ChildIdx>> SearchThread::iterate_all_nodes_b
             continue;
         }
 
-        StateObj* newState = curNode->get_state()->clone();
 
         for (ChildIdx idx = curData->noVisitIdx; idx < curNode->get_number_child_nodes(); idx++) {
             Action action = curNode->get_action(idx);
-            if(action == MOVE_NULL){
-                continue;
-            }
+            unique_ptr<StateObj> newState = unique_ptr<StateObj>(curNode->get_state()->clone());
             newState->do_action(action);
             keys.emplace_back(newState->hash_key());
             leafNodesMap.emplace(newState->hash_key(), std::make_pair(curNode, idx));
-            newState->undo_action(action);
+            // TODO: Use undo action here and move newState out of for loop
+//            newState->undo_action(action);
 
         }
-
         // If a node is leaf node
         // There are many identical numbers.
         //std::cout << "curData->noVisitIdx: " << curData->noVisitIdx << endl;
