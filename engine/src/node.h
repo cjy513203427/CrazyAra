@@ -196,9 +196,9 @@ public:
      */
     Node* get_child_node(ChildIdx childIdx);
 
-    Node* get_parent_node();
+    Node* get_parent_node() const;
 
-    ChildIdx get_parent_node_idx();
+    ChildIdx get_parent_node_idx() const;
 
     /**
      * @brief get all child nodes
@@ -904,21 +904,21 @@ void backup_value(float value, const SearchSettings* searchSettings, const Traje
 }
 
 template <bool freeBackup>
-void backup_value(float value, const SearchSettings* searchSettings, Node* node, bool solveForTerminal) {
+void backup_value(float value, const SearchSettings* searchSettings, Node* node, bool solveForTerminal, ChildIdx parentNodeIdx) {
     double targetQValue = 0;
     while(node!= nullptr){
         if (targetQValue != 0) {
-            const uint_fast32_t transposVisits = node->get_real_visits(node->get_parent_node_idx());
+            const uint_fast32_t transposVisits = node->get_real_visits(parentNodeIdx);
             if (transposVisits != 0) {
-                const double transposQValue = node->get_transposition_q_value(searchSettings, node->get_parent_node_idx(), transposVisits);
+                const double transposQValue = node->get_transposition_q_value(searchSettings, parentNodeIdx, transposVisits);
                 value = get_transposition_backup_value(transposVisits, transposQValue, targetQValue);
             }
         }
         if (searchSettings->searchPlayerMode == MODE_TWO_PLAYER) {
                 value = -value;
         }
-        freeBackup ? node->revert_virtual_loss_and_update<true>(node->get_parent_node_idx(), value, searchSettings, solveForTerminal) :
-                   node->revert_virtual_loss_and_update<false>(node->get_parent_node_idx(), value, searchSettings, solveForTerminal);
+        freeBackup ? node->revert_virtual_loss_and_update<true>(parentNodeIdx, value, searchSettings, solveForTerminal) :
+                   node->revert_virtual_loss_and_update<false>(parentNodeIdx, value, searchSettings, solveForTerminal);
 
         if (node->is_transposition()) {
             targetQValue = node->get_value();
@@ -927,6 +927,7 @@ void backup_value(float value, const SearchSettings* searchSettings, Node* node,
             targetQValue = 0;
         }
 
+        parentNodeIdx = node->get_parent_node_idx();
         node = node->get_parent_node();
     }
 }

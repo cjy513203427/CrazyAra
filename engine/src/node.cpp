@@ -1086,12 +1086,12 @@ Node* Node::get_child_node(ChildIdx childIdx)
     return d->childNodes[childIdx].get();
 }
 
-Node *Node::get_parent_node()
+Node *Node::get_parent_node() const
 {
     return parentNode;
 }
 
-ChildIdx Node::get_parent_node_idx()
+ChildIdx Node::get_parent_node_idx() const
 {
     return parentNodeIdx;
 }

@@ -459,8 +459,9 @@ void SearchThread::backup_values(FixedVector<float>* values, vector<Trajectory>&
 
 void SearchThread::backup_values(FixedVector<Node*> *nodes) {
     for (size_t idx = 0; idx < nodes->size(); ++idx) {
-        const float value = nodes->get_element(idx)->get_value();
-        backup_value<true>(value, searchSettings, nodes->get_element(idx), false);
+        Node* curNode = nodes->get_element(idx);
+        const float value = curNode->get_value();
+        backup_value<true>(value, searchSettings, curNode->get_parent_node(), false, curNode->get_parent_node_idx());
     }
     nodes->reset_idx();
 }
@@ -702,6 +703,7 @@ void SearchThread::update(NodeDescription& description){
     // backup_collisions();
 
     backup_values(newNodes.get());
+//    newNodes->reset_idx();
 }
 
 void node_assign_value(Node *node, const float* valueOutputs, size_t& tbHits, size_t batchIdx, bool isRootNodeTB)
