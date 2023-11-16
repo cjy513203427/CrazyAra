@@ -596,7 +596,8 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode){
         Node * parentNode = combinedRootNodeLargeMap.begin()->second.first;
         const ChildIdx childIdx =  combinedRootNodeLargeMap.begin()->second.second;
         // create a new node
-        StateObj* state = parentNode->get_state();
+        // we need to clone the state to avoid double free problem for MCTS_STORE_STATES
+        StateObj* state = parentNode->get_state()->clone();
         state->do_action(parentNode->get_action(childIdx));
         shared_ptr<Node> newNode = make_shared<Node>(state, searchSettings, parentNode, childIdx);
         state->get_state_planes(true, inputPlanes + newNodes->size() * net->get_nb_input_values_total(), net->get_version());
