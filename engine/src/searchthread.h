@@ -37,244 +37,244 @@
 
 
 enum NodeBackup : uint8_t {
-    NODE_COLLISION,
-    NODE_TERMINAL,
-    NODE_TRANSPOSITION,
-    NODE_NEW_NODE,
-    NODE_UNKNOWN,
+	NODE_COLLISION,
+	NODE_TERMINAL,
+	NODE_TRANSPOSITION,
+	NODE_NEW_NODE,
+	NODE_UNKNOWN,
 };
 
 struct NodeDescription
 {
-    NodeBackup type;
-    // depth which was reached on this rollout
-    size_t depth;
+	NodeBackup type;
+	// depth which was reached on this rollout
+	size_t depth;
 };
 
 class SearchThread : public NeuralNetAPIUser
 {
 private:
-    Node* rootNode;
-    Node* rootNodeLarge;
-    StateObj* rootState;
-    unique_ptr<StateObj> newState;
+	Node* rootNode;
+	Node* rootNodeLarge;
+	StateObj* rootState;
+	unique_ptr<StateObj> newState;
 
-    // list of all node objects which have been selected for expansion
-    unique_ptr<FixedVector<Node*>> newNodes;
-    unique_ptr<FixedVector<SideToMove>> newNodeSideToMove;
-    unique_ptr<FixedVector<float>> transpositionValues;
+	// list of all node objects which have been selected for expansion
+	unique_ptr<FixedVector<Node*>> newNodes;
+	unique_ptr<FixedVector<SideToMove>> newNodeSideToMove;
+	unique_ptr<FixedVector<float>> transpositionValues;
 
-    vector<Trajectory> newTrajectories;
-    vector<Trajectory> transpositionTrajectories;
-    vector<Trajectory> collisionTrajectories;
+	vector<Trajectory> newTrajectories;
+	vector<Trajectory> transpositionTrajectories;
+	vector<Trajectory> collisionTrajectories;
 
-    Trajectory trajectoryBuffer;
-    vector<Action> actionsBuffer;
+	Trajectory trajectoryBuffer;
+	vector<Action> actionsBuffer;
 
-    bool isRunning;
+	bool isRunning;
 
-    MapWithMutex* mapWithMutex;
-    const SearchSettings* searchSettings;
-    SearchLimits* searchLimits;
-    size_t tbHits;
-    size_t depthSum;
-    size_t depthMax;
-    size_t visitsPreSearch;
-    uint_fast32_t terminalNodeCache;  // TODO: better add "const" classifier here is possible
-    bool reachedTablebases;
+	MapWithMutex* mapWithMutex;
+	const SearchSettings* searchSettings;
+	SearchLimits* searchLimits;
+	size_t tbHits;
+	size_t depthSum;
+	size_t depthMax;
+	size_t visitsPreSearch;
+	uint_fast32_t terminalNodeCache;  // TODO: better add "const" classifier here is possible
+	bool reachedTablebases;
 
-    // Pointer for large NN
-    unique_ptr<NeuralNetAPIUser> nnLarge;
+	// Pointer for large NN
+	unique_ptr<NeuralNetAPIUser> nnLarge;
 public:
-    /**
-     * @brief SearchThread
-     * @param netBatch Network API object which provides the prediction of the neural network
-     * @param searchSettings Given settings for this search run
-     * @param MapWithMutex Handle to the hash table
-     */
-    SearchThread(NeuralNetAPI* netBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
+	/**
+	 * @brief SearchThread
+	 * @param netBatch Network API object which provides the prediction of the neural network
+	 * @param searchSettings Given settings for this search run
+	 * @param MapWithMutex Handle to the hash table
+	 */
+	SearchThread(NeuralNetAPI* netBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
 
-    /**
-         * @brief SearchThread
-         * @param netSmallBatch Network API object which provides the prediction of the small neural network
-           @param netLargeBatch Network API object which provides the prediction of the large neural network
-         * @param searchSettings Given settings for this search run
-         * @param MapWithMutex Handle to the hash table
-         */
-    SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
+	/**
+		 * @brief SearchThread
+		 * @param netSmallBatch Network API object which provides the prediction of the small neural network
+		   @param netLargeBatch Network API object which provides the prediction of the large neural network
+		 * @param searchSettings Given settings for this search run
+		 * @param MapWithMutex Handle to the hash table
+		 */
+	SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
 
-    /**
-     * @brief create_mini_batch Creates a mini-batch of new unexplored nodes.
-     * Terminal node are immediatly backpropagated without requesting the NN.
-     * If the node was found in the hash-table it's value is backpropagated without requesting the NN.
-     * If a collision occurs (the same node was selected multiple times), it will be added to the collisionNodes vector
-     * @param rootNode root node
-     */
-    void create_mini_batch(Node* rootNode);
+	/**
+	 * @brief create_mini_batch Creates a mini-batch of new unexplored nodes.
+	 * Terminal node are immediatly backpropagated without requesting the NN.
+	 * If the node was found in the hash-table it's value is backpropagated without requesting the NN.
+	 * If a collision occurs (the same node was selected multiple times), it will be added to the collisionNodes vector
+	 * @param rootNode root node
+	 */
+	void create_mini_batch(Node* rootNode);
 
-    /**
-     * @brief One simulation for a single node's expansion
-     * @param rootNode root node
-    */
-    void simulation_puct(Node* rootNode, size_t &numTerminalNodes);
+	/**
+	 * @brief One simulation for a single node's expansion
+	 * @param rootNode root node
+	*/
+	void simulation_puct(Node* rootNode, size_t &numTerminalNodes);
 
-    /**
-     * @brief thread_iteration Runs multiple mcts-rollouts as long as a new batch is filled
-     */
-    void thread_iteration();
+	/**
+	 * @brief thread_iteration Runs multiple mcts-rollouts as long as a new batch is filled
+	 */
+	void thread_iteration();
 
-    /**
-     * @brief nodes_limits_ok Checks if the searchLimits based on the amount of nodes to search has been reached.
-     * In the case the number of nodes is set to zero the limit condition is ignored
-     * @return bool
-     */
-    inline bool nodes_limits_ok();
+	/**
+	 * @brief nodes_limits_ok Checks if the searchLimits based on the amount of nodes to search has been reached.
+	 * In the case the number of nodes is set to zero the limit condition is ignored
+	 * @return bool
+	 */
+	inline bool nodes_limits_ok();
 
-    /**
-     * @brief is_root_node_unsolved Checks if the root node result is still unsolved (not a forced win, draw or loss)
-     * @return true for unsolved, else false
-     */
-    inline bool is_root_node_unsolved();
+	/**
+	 * @brief is_root_node_unsolved Checks if the root node result is still unsolved (not a forced win, draw or loss)
+	 * @return true for unsolved, else false
+	 */
+	inline bool is_root_node_unsolved();
 
-    /**
-     * @brief stop Stops the rollouts of the current thread
-     */
-    void stop();
+	/**
+	 * @brief stop Stops the rollouts of the current thread
+	 */
+	void stop();
 
-    // Getter, setter functions
-    void set_search_limits(SearchLimits *s);
-    Node* get_root_node() const;
-    Node* get_root_node_large() const;
-    SearchLimits *get_search_limits() const;
-    void set_root_node(Node *value);
-    void set_root_node_large(Node *value);
-    bool is_running() const;
-    void set_is_running(bool value);
-    void set_reached_tablebases(bool value);
+	// Getter, setter functions
+	void set_search_limits(SearchLimits *s);
+	Node* get_root_node() const;
+	Node* get_root_node_large() const;
+	SearchLimits *get_search_limits() const;
+	void set_root_node(Node *value);
+	void set_root_node_large(Node *value);
+	bool is_running() const;
+	void set_is_running(bool value);
+	void set_reached_tablebases(bool value);
 
-    /**
-     * @brief add_new_node_to_tree Adds a new node to the search by either creating a new node or duplicating an exisiting node in case of transposition usage
-     * @param newPos Board position of the new node
-     * @param parentNode Parent node for the now
-     * @param childIdx Respective index for the new node
-     * @param nodeBackup Returns NODE_TRANSPOSITION if a tranpsosition node was added and NODE_NEW_NODE otherwise
-     * @return The newly added node
-     */
-    Node* add_new_node_to_tree(StateObj* newPos, Node* parentNode, ChildIdx childIdx, NodeBackup& nodeBackup);
+	/**
+	 * @brief add_new_node_to_tree Adds a new node to the search by either creating a new node or duplicating an exisiting node in case of transposition usage
+	 * @param newPos Board position of the new node
+	 * @param parentNode Parent node for the now
+	 * @param childIdx Respective index for the new node
+	 * @param nodeBackup Returns NODE_TRANSPOSITION if a tranpsosition node was added and NODE_NEW_NODE otherwise
+	 * @return The newly added node
+	 */
+	Node* add_new_node_to_tree(StateObj* newPos, Node* parentNode, ChildIdx childIdx, NodeBackup& nodeBackup);
 
-    /**
-     * @brief reset_tb_hits Sets the number of table hits to 0
-     */
-    void reset_stats();
+	/**
+	 * @brief reset_tb_hits Sets the number of table hits to 0
+	 */
+	void reset_stats();
 
-    void set_root_state(StateObj* value);
-    size_t get_tb_hits() const;
+	void set_root_state(StateObj* value);
+	size_t get_tb_hits() const;
 
-    size_t get_avg_depth();
+	size_t get_avg_depth();
 
-    size_t get_max_depth() const;
+	size_t get_max_depth() const;
 
-    Node* get_starting_node(Node* currentNode, NodeDescription& description, ChildIdx& childIdx);
+	Node* get_starting_node(Node* currentNode, NodeDescription& description, ChildIdx& childIdx);
 
-    /**
-     * @brief MPV-MCTS Algorithm
-     * @param state state
-     * @param f_Small small network
-     * @param f_Large large network
-     * @param b_Small budget for small NN
-     * @param b_Large budget for large NN
-    */
-    void mpv_mcts(size_t b_Small, size_t b_Large);
+	/**
+	 * @brief MPV-MCTS Algorithm
+	 * @param state state
+	 * @param f_Small small network
+	 * @param f_Large large network
+	 * @param b_Small budget for small NN
+	 * @param b_Large budget for large NN
+	*/
+	void mpv_mcts(size_t b_Small, size_t b_Large);
 
-    /**
-     * @brief iterate all nodes with BFS
-     * @param node
-    */
-    std::multimap<Key, std::pair<Node*, ChildIdx>> iterate_all_nodes_bfs(Node* node);
+	/**
+	 * @brief iterate all nodes with BFS
+	 * @param node
+	*/
+	std::multimap<Key, std::pair<Node*, ChildIdx>> iterate_all_nodes_bfs(Node* node);
 
-    /**
-     * @brief  sort map based on the number of visits in the small tree using the hash key as the look-up key.
-     * @param treeMap
-    */
-    std::multimap<std::pair<Key, unsigned int>, Node*> doublekey_map(std::multimap<unsigned int, Node*, std::greater<unsigned int>> treeMap);
-    
-    /**
-     * @brief create mapping between small and large tree
-     * @param smallTreeMap
-     * @param largeTreeMap
-    */
-    std::multimap<std::pair<Key, unsigned int>, Node*> create_mapping_for_small_large_tree(std::multimap<unsigned int, Node*, std::greater<unsigned int>> smallTreeMap, std::multimap<unsigned int, Node*, std::greater<unsigned int>> largeTreeMap);
-    
+	/**
+	 * @brief  sort map based on the number of visits in the small tree using the hash key as the look-up key.
+	 * @param treeMap
+	*/
+	std::multimap<std::pair<Key, unsigned int>, Node*> doublekey_map(std::multimap<unsigned int, Node*, std::greater<unsigned int>> treeMap);
+
+	/**
+	 * @brief create mapping between small and large tree
+	 * @param smallTreeMap
+	 * @param largeTreeMap
+	*/
+	std::multimap<std::pair<Key, unsigned int>, Node*> create_mapping_for_small_large_tree(std::multimap<unsigned int, Node*, std::greater<unsigned int>> smallTreeMap, std::multimap<unsigned int, Node*, std::greater<unsigned int>> largeTreeMap);
+
 
 private:
-    /**
-     * @brief set_nn_results_to_child_nodes Sets the neural network value evaluation and policy prediction vector for every newly expanded nodes
-     */
-    void set_nn_results_to_child_nodes();
+	/**
+	 * @brief set_nn_results_to_child_nodes Sets the neural network value evaluation and policy prediction vector for every newly expanded nodes
+	 */
+	void set_nn_results_to_child_nodes();
 
-    /**
-     * @brief backup_value_outputs Backpropagates all newly received value evaluations from the neural network accross the visited search paths
-     */
-    void backup_value_outputs();
+	/**
+	 * @brief backup_value_outputs Backpropagates all newly received value evaluations from the neural network accross the visited search paths
+	 */
+	void backup_value_outputs();
 
-    /**
-     * @brief backup_collisions Reverts the applied virtual loss for all rollouts which ended in a collision event
-     */
-    void backup_collisions();
+	/**
+	 * @brief backup_collisions Reverts the applied virtual loss for all rollouts which ended in a collision event
+	 */
+	void backup_collisions();
 
-    /**
-     * @brief get_new_child_to_evaluate Traverses the search tree beginning from the root node and returns the prarent node and child index for the next node to expand.
-     * @param description Output struct which holds information what type of node it is
-     * @return Pointer to next child to evaluate (can also be terminal or tranposition node in which case no NN eval is required)
-     */
-    Node* get_new_child_to_evaluate(NodeDescription& description, Node* rootNode);
+	/**
+	 * @brief get_new_child_to_evaluate Traverses the search tree beginning from the root node and returns the prarent node and child index for the next node to expand.
+	 * @param description Output struct which holds information what type of node it is
+	 * @return Pointer to next child to evaluate (can also be terminal or tranposition node in which case no NN eval is required)
+	 */
+	Node* get_new_child_to_evaluate(NodeDescription& description, Node* rootNode);
 
-    void backup_values(FixedVector<Node*> *nodes);
-    void backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories);
-    void backup_values(FixedVector<float>* values, vector<Trajectory>& trajectories);
+	void backup_values(FixedVector<Node*> *nodes);
+	void backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& trajectories);
+	void backup_values(FixedVector<float>* values, vector<Trajectory>& trajectories);
 
-    /**
-     * @brief select_enhanced_move Selects an enhanced move (e.g. checking move) which has not been explored under given conditions.
-     * @param currentNode Current node during forward simulation
-     * @return uint_16_t(-1) for no action else custom idx
-     */
-    ChildIdx select_enhanced_move(Node* currentNode) const;
-    /**
-     * @brief get_current_transposition_q_value Returns the Q-value which connects to the transposition node
-     * @param currentNode Current node
-     * @param childIdx child index
-     * @param transposVisits Number of visits connecting to the transposition node
-     * @return Q-Value converted to double
-     */
-    double get_current_transposition_q_value(const Node* currentNode, ChildIdx childIdx, uint_fast32_t transposVisits);
+	/**
+	 * @brief select_enhanced_move Selects an enhanced move (e.g. checking move) which has not been explored under given conditions.
+	 * @param currentNode Current node during forward simulation
+	 * @return uint_16_t(-1) for no action else custom idx
+	 */
+	ChildIdx select_enhanced_move(Node* currentNode) const;
+	/**
+	 * @brief get_current_transposition_q_value Returns the Q-value which connects to the transposition node
+	 * @param currentNode Current node
+	 * @param childIdx child index
+	 * @param transposVisits Number of visits connecting to the transposition node
+	 * @return Q-Value converted to double
+	 */
+	double get_current_transposition_q_value(const Node* currentNode, ChildIdx childIdx, uint_fast32_t transposVisits);
 
-    /**
-     * @brief random select between lowerbound and upperbound
-     * @param lowerbound lower bound
-     * @param upperbound upper bound
-     * @param num_selections selected number
-    */
-    vector<int> randomly_select(int lowerbound, int upperbound, int num_selections);
+	/**
+	 * @brief random select between lowerbound and upperbound
+	 * @param lowerbound lower bound
+	 * @param upperbound upper bound
+	 * @param num_selections selected number
+	*/
+	vector<int> randomly_select(int lowerbound, int upperbound, int num_selections);
 
-    /**
-     * @brief select unexpanded leaf state by PUCT
-     * u_{PUCT}(s, a) = P(s, a) * \frac{sqrt(N(s))}{N(s, a)}
-     * @param description Return type with NodeDescription
-    */
-    void select_unevaluated_leafState_puct(Node* rootNode);
+	/**
+	 * @brief select unexpanded leaf state by PUCT
+	 * u_{PUCT}(s, a) = P(s, a) * \frac{sqrt(N(s))}{N(s, a)}
+	 * @param description Return type with NodeDescription
+	*/
+	void select_unevaluated_leafState_puct(Node* rootNode);
 
-    /**
-     * @brief select unexpanded leaf state by priority
-     * @param rootNode rootnode for Small tree
-           @param rootNodeLarge rootnode for large tree
-    */
-    void select_unevaluated_leafState_priority(Node* rootNode);
+	/**
+	 * @brief select unexpanded leaf state by priority
+	 * @param rootNode rootnode for Small tree
+		   @param rootNodeLarge rootnode for large tree
+	*/
+	void select_unevaluated_leafState_priority(Node* rootNode);
 
-    /**
-     * @brief update nodes
-     * @param leaft_state state of leaf
-    */
-    void update(NodeDescription& description);
+	/**
+	 * @brief update nodes
+	 * @param leaft_state state of leaf
+	*/
+	void update(NodeDescription& description);
 };
 
 void run_search_thread(SearchThread* t);
