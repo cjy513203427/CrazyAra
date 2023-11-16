@@ -131,8 +131,8 @@ void OptionsUCI::init(OptionsMap &o)
 #if defined(MODE_LICHESS) || defined(MODE_BOARDGAMES)
     o["Model_Directory"]               << Option((string("model/") + engineName + "/" + get_first_variant_with_model()).c_str());
 #else
-    // o["Model_Directory"]               << Option(string("model/" + engineName + "/" + StateConstants::DEFAULT_UCI_VARIANT()).c_str());
-    o["Model_Directory"]               << Option(string("Small_Large_Models/large/").c_str());
+    o["Model_Directory"]               << Option(string("model/" + engineName + "/" + StateConstants::DEFAULT_UCI_VARIANT()).c_str());
+    // o["Model_Directory"]               << Option(string("Small_Large_Models/large/").c_str());
     o["Small_Model_Directory"]               << Option(string("Small_Large_Models/small/").c_str());
     o["Large_Model_Directory"]               << Option(string("Small_Large_Models/large/").c_str());
 #endif
