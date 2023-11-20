@@ -442,7 +442,7 @@ void SearchThread::backup_values(FixedVector<Node*>& nodes, vector<Trajectory>& 
 		const bool solveForTerminal = searchSettings->mctsSolver && node->is_tablebase();
 		backup_value<false>(node->get_value(), searchSettings, trajectories[idx], solveForTerminal);
 #else
-		backup_value<false>(node->get_value(), searSearch_TypechSettings, trajectories[idx], false);
+		backup_value<false>(node->get_value(), searchSettings, trajectories[idx], false);
 #endif
 	}
 	nodes.reset_idx();
@@ -550,15 +550,13 @@ vector<int> SearchThread::randomly_select(int lowerbound, int upperbound, int nu
 void SearchThread::select_unevaluated_leafState_puct(Node* rootNode) {
 	size_t num_loop = 0;
 	simulation_puct(rootNode, num_loop);
-	simulation_puct(rootNodeLarge, num_loop);
+	// simulation_puct(rootNodeLarge, num_loop);
 }
 
 void SearchThread::select_unevaluated_leafState_priority(Node* rootNode) {
 	// Priority means higher visit counts(based on small tree)
 	// For each node have potential nodes, choose important nodes which has the most qvalues. The best move has the most visits. Subsequent nodes and opponent move are also important. Future moves take into account.
 	// Get final rootNode
-	// Todo: Exclude nodes whose qVal are -1, after excluding, rootNodeMap's size is 0?
-	// get key through hashKey. Need for loop map.
 
 
 	// cout<< "--------------------------t->iterate_all_nodes_bfs(rootNodeLargeBFS)--------------------------" << endl;
@@ -570,7 +568,7 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode) {
 
 	//    std::multimap<std::pair<Key, unsigned int>, Node*> rootNodeLargeDoublekeyMap = this->doublekey_map(rootNodeLargeMap);
 
-		//auto firstElementIterator = sortedRootNodeMapping.begin();
+	//auto firstElementIterator = sortedRootNodeMapping.begin();
 	auto firstElementIterator = rootNodeLargeMap.begin();
 	// std::cout << "First key of the first element: " << firstKey << std::endl;
 
