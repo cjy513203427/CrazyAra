@@ -1086,6 +1086,15 @@ DynamicVector<float> Node::get_current_u_values(const SearchSettings* searchSett
 #endif
 }
 
+DynamicVector<float> Node::get_current_u_values(const SearchSettings* searchSettings, DynamicVector<float> policyProbSmall)
+{
+#ifdef SEARCH_UCT
+    return searchSettings->cpuctInit * (sqrt(log(d->visitSum)) / (d->childNumberVisits + FLT_EPSILON));
+#else
+    return get_current_cput(d->visitSum, searchSettings) * blaze::subvector(policyProbSmall, 0, d->noVisitIdx) * (sqrt(d->visitSum) / (d->childNumberVisits + 1.0));
+#endif
+}
+
 Node* Node::get_child_node(ChildIdx childIdx)
 {
     return d->childNodes[childIdx].get();
@@ -1190,7 +1199,42 @@ size_t get_best_action_index(const Node *curNode, bool fast, const SearchSetting
     return bestMoveIdx;
 }
 
-ChildIdx Node::select_child_node(const SearchSettings* searchSettings)
+/**
+ * Retrieve policyProbSmall through iterating rootnode
+*/
+std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> iterate_all_nodes_bfs(Node* node)
+{
+	// a queue for traverse
+	std::queue<Node*> q;
+	// key: number of the visits, value: node pointer which wants to be evaluated
+	std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> leafNodesMap;
+
+	q.push(node);
+
+	vector<Key> keys;
+	while (!q.empty()) {
+		Node* curNode = q.front();
+
+		q.pop();
+
+		NodeData* curData = curNode->get_node_data();
+
+		// std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
+
+		//if(curData == nullptr || curNode->is_sorted() == false){
+		if (curData == nullptr) {
+			continue;
+		}
+
+		unique_ptr<StateObj> newState = unique_ptr<StateObj>(curNode->get_state()->clone());
+		keys.emplace_back(newState->hash_key());
+		leafNodesMap.emplace(newState->hash_key(), std::make_pair(curNode, curNode->get_policy_prob_small()));
+
+	}
+	return leafNodesMap;
+}
+
+ChildIdx Node::select_child_node(const SearchSettings* searchSettings, Node* rootNode, Node* rootNodeLarge)
 {
     if (!sorted) {
         prepare_node_for_visits();
@@ -1206,8 +1250,63 @@ ChildIdx Node::select_child_node(const SearchSettings* searchSettings)
     // find the move according to the q- and u-values for each move
     // calculate the current u values
     // it's not worth to save the u values as a node attribute because u is updated every time n_sum changes
+
+
+    // if(this->key)
+
+
+	// Map for small tree
+	std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> rootNodeMap = iterate_all_nodes_bfs(rootNode);
+
+    // Map for large tree
+    std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> rootNodeLargeMap = iterate_all_nodes_bfs(rootNodeLarge);
+
+	// Combine qVal
+	for (auto it = rootNodeMap.begin(); it != rootNodeMap.end(); ++it) {
+		Key key = it->first;
+		Node* node = it->second.first;
+		const DynamicVector<float>& vectorRef = it->second.second;
+
+		// Process the key, node, and vectorRef as needed
+		 //this->get_node_data()->qValues += node->get_node_data()->qValues();
+
+	}
+
+
+	for (const auto& entry : rootNodeLargeMap) {
+		Key key = entry.first;
+		Node* node = entry.second.first;
+		const DynamicVector<float>& vectorRef = entry.second.second;
+
+		// Process the key, node, and vectorRef as needed
+		//float qVal = this->get_node_data()->get_q_values();
+		//qVal += 0.5 * node->get_node_data()->get_q_values();
+	}
+
+    // check matched key
+    // This for loop has "access violation error"
+	for (auto it = rootNodeLargeMap.begin(); it != rootNodeLargeMap.end(); ++it) {
+		Key currentKey = it->first;
+
+		//mapWithMutex->mtx.lock();
+		//// Apply correct policyProbSmall according to matched key
+		//HashMap::const_iterator itt = mapWithMutex->hashTable.find(currentKey);
+		//if (itt != mapWithMutex->hashTable.end()) {
+		//	shared_ptr<Node> matchedNode = itt->second.lock();
+		//	if (matchedNode->get_node_data() != nullptr) {
+  //              return argmax(d->qValues + get_current_u_values(searchSettings, matchedNode.get()->get_policy_prob_small()));
+		//	}
+		//}
+
+		//mapWithMutex->mtx.unlock();
+
+
+	}
+
     return argmax(d->qValues + get_current_u_values(searchSettings));
 }
+
+
 
 NodeSplit Node::select_child_nodes(const SearchSettings* searchSettings, uint_fast16_t budget)
 {

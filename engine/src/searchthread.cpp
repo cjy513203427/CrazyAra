@@ -184,20 +184,20 @@ Node* SearchThread::get_starting_node(Node* currentNode, NodeDescription& descri
 	return currentNode;
 }
 
-Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description, Node* rootNode)
+Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description, Node* node)
 {
 	description.depth = 0;
-	Node* currentNode = rootNode;
+	Node* currentNode = node;
 	Node* nextNode;
 
 	ChildIdx childIdx = uint16_t(-1);
-	if (searchSettings->epsilonGreedyCounter && rootNode->is_playout_node() && rand() % searchSettings->epsilonGreedyCounter == 0) {
+	if (searchSettings->epsilonGreedyCounter && node->is_playout_node() && rand() % searchSettings->epsilonGreedyCounter == 0) {
 		currentNode = get_starting_node(currentNode, description, childIdx);
 		currentNode->lock();
 		random_playout(currentNode, childIdx);
 		currentNode->unlock();
 	}
-	else if (searchSettings->epsilonChecksCounter && rootNode->is_playout_node() && rand() % searchSettings->epsilonChecksCounter == 0) {
+	else if (searchSettings->epsilonChecksCounter && node->is_playout_node() && rand() % searchSettings->epsilonChecksCounter == 0) {
 		currentNode = get_starting_node(currentNode, description, childIdx);
 		currentNode->lock();
 		childIdx = select_enhanced_move(currentNode);
@@ -210,7 +210,8 @@ Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description, Node
 	while (true) {
 		currentNode->lock();
 		if (childIdx == uint16_t(-1)) {
-			childIdx = currentNode->select_child_node(searchSettings);
+			// TODO check if this rootNodeLarge, otherwise excute normal logic
+			childIdx = currentNode->select_child_node(searchSettings, rootNode, rootNodeLarge);
 		}
 		currentNode->apply_virtual_loss_to_child(childIdx, searchSettings);
 		trajectoryBuffer.emplace_back(NodeAndIdx(currentNode, childIdx));
@@ -636,7 +637,6 @@ std::multimap<Key, std::pair<Node*, ChildIdx>> SearchThread::iterate_all_nodes_b
 		if (curData == nullptr) {
 			continue;
 		}
-
 
 		for (ChildIdx idx = curData->noVisitIdx; idx < curNode->get_number_child_nodes(); idx++) {
 			Action action = curNode->get_action(idx);

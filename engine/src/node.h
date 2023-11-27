@@ -30,6 +30,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <queue>
 #include <unordered_map>
 
 #include <blaze/Math.h>
@@ -100,6 +101,8 @@ class Node
 {
 private:
     mutex mtx;
+
+    MapWithMutex* mapWithMutex;
 
     DynamicVector<float> policyProbSmall;
     vector<Action> legalActions;
@@ -189,6 +192,14 @@ public:
     DynamicVector<float> get_current_u_values(const SearchSettings* searchSettings);
 
     /**
+     * @brief get_current_u_values Calucates and returns the current u-values for this node
+     * @param searchSettings Search settings struct
+     * @param 
+     * @return DynamicVector<float>
+     */
+    DynamicVector<float> get_current_u_values(const SearchSettings* searchSettings, DynamicVector<float> policyProbSmall);
+
+    /**
      * @brief get_child_node Returns the child node at the given index.
      * A nullptr is returned if the child node wasn't expanded yet and no check is done if the childIdx is smaller than
      * @param childIdx Index for the next child node to select
@@ -206,6 +217,8 @@ public:
     vector<shared_ptr<Node>> get_child_nodes();
 
     ChildIdx select_child_node(const SearchSettings* searchSettings);
+
+    ChildIdx select_child_node(const SearchSettings* searchSettings, Node* rootNode, Node* rootNodeLarge);
 
     /**
      * @brief select_child_nodes Selects multiple nodes at once
