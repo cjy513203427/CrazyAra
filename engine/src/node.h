@@ -194,10 +194,18 @@ public:
     /**
      * @brief get_current_u_values Calucates and returns the current u-values for this node
      * @param searchSettings Search settings struct
-     * @param 
+     * @param policyProbSmall policy probability
      * @return DynamicVector<float>
      */
     DynamicVector<float> get_current_u_values(const SearchSettings* searchSettings, DynamicVector<float> policyProbSmall);
+
+    /**
+     * @brief get_current_u_values Calucates and returns the current u-values for this node
+     * @param searchSettings Search settings struct
+     * @param node root node
+     * @return DynamicVector<float>
+     */
+    DynamicVector<float> get_current_u_values(const SearchSettings* searchSettings, Node* node);
 
     /**
      * @brief get_child_node Returns the child node at the given index.
@@ -216,9 +224,20 @@ public:
     */
     vector<shared_ptr<Node>> get_child_nodes();
 
+    /**
+     * @brief select child node
+     * @param searchSettings search settings
+     * @return child index
+    */
     ChildIdx select_child_node(const SearchSettings* searchSettings);
 
-    ChildIdx select_child_node(const SearchSettings* searchSettings, Node* rootNode, Node* rootNodeLarge);
+    /**
+     * @brief select child node
+     * @param searchSettings search settings
+     * @param mapWithMutexLarge mutex
+     * @return child index
+    */
+    ChildIdx select_child_node(const SearchSettings* searchSettings, MapWithMutex *mapWithMutexLarge);
 
     /**
      * @brief select_child_nodes Selects multiple nodes at once

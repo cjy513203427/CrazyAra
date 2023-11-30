@@ -74,7 +74,7 @@ MCTSAgent::MCTSAgent(NeuralNetAPI *netSingle, vector<unique_ptr<NeuralNetAPI>>& 
     this->netSingleLarge = nullptr;
 	searchThreads.clear();
 	for (auto i = 0; i < searchSettings->threads; ++i) {
-		searchThreads.emplace_back(new SearchThread(netBatchesSmall[i].get(), netBatchesLarge[i].get(), searchSettings, &mapWithMutex));
+		searchThreads.emplace_back(new SearchThread(netBatchesSmall[i].get(), netBatchesLarge[i].get(), searchSettings, &mapWithMutex, &mapWithMutexLarge));
 	}
 }
 
@@ -85,7 +85,7 @@ MCTSAgent::MCTSAgent(NeuralNetAPI *netSingle, NeuralNetAPI* netSingleLarge, vect
     this->netSingleLarge = netSingleLarge;
 	searchThreads.clear();
 	for (auto i = 0; i < searchSettings->threads; ++i) {
-		searchThreads.emplace_back(new SearchThread(netBatchesSmall[i].get(), netBatchesLarge[i].get(), searchSettings, &mapWithMutex));
+		searchThreads.emplace_back(new SearchThread(netBatchesSmall[i].get(), netBatchesLarge[i].get(), searchSettings, &mapWithMutex, &mapWithMutexLarge));
 	}
 }
 

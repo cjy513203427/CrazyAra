@@ -1095,6 +1095,25 @@ DynamicVector<float> Node::get_current_u_values(const SearchSettings* searchSett
 #endif
 }
 
+DynamicVector<float> Node::get_current_u_values(const SearchSettings* searchSettings, Node* largeNode)
+{
+#ifdef SEARCH_UCT
+    return searchSettings->cpuctInit * (sqrt(log(d->visitSum)) / (d->childNumberVisits + FLT_EPSILON));
+#else
+    DynamicVector<float> policyProbSmallVector(get_no_visit_idx()+1);
+    for (int i =0; i < get_no_visit_idx(); i++){
+        Action target = get_action(i);
+        auto it_leagal_action = std::find(largeNode->legalActions.begin(), largeNode->legalActions.end(), target);
+        if(it_leagal_action!=largeNode->legalActions.end()){
+			ChildIdx targetIdx = it_leagal_action - largeNode->legalActions.begin();
+            policyProbSmallVector[i] = largeNode->get_policy_prob_small()[targetIdx];
+        }
+        
+    }
+    return get_current_cput(d->visitSum, searchSettings) * blaze::subvector(policyProbSmallVector, 0, d->noVisitIdx) * (sqrt(d->visitSum) / (d->childNumberVisits + 1.0));
+#endif
+}
+
 Node* Node::get_child_node(ChildIdx childIdx)
 {
     return d->childNodes[childIdx].get();
@@ -1234,7 +1253,7 @@ std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> iterate_all_no
 	return leafNodesMap;
 }
 
-ChildIdx Node::select_child_node(const SearchSettings* searchSettings, Node* rootNode, Node* rootNodeLarge)
+ChildIdx Node::select_child_node(const SearchSettings* searchSettings, MapWithMutex *mapWithMutexLarge)
 {
     if (!sorted) {
         prepare_node_for_visits();
@@ -1247,62 +1266,16 @@ ChildIdx Node::select_child_node(const SearchSettings* searchSettings, Node* roo
     }
 
     assert(sum(d->childNumberVisits) == d->visitSum);
-    // find the move according to the q- and u-values for each move
-    // calculate the current u values
-    // it's not worth to save the u values as a node attribute because u is updated every time n_sum changes
 
+    mapWithMutexLarge->mtx.lock();
+    HashMap::const_iterator it = mapWithMutexLarge->hashTable.find(this->hash_key());
+    if (it != mapWithMutexLarge->hashTable.end()) {
+        shared_ptr<Node> largeNode = it->second.lock();
+        mapWithMutexLarge->mtx.unlock();
+        return argmax(d->qValues + get_current_u_values(searchSettings, largeNode.get()));
+    }
 
-    // if(this->key)
-
-
-	// Map for small tree
-	std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> rootNodeMap = iterate_all_nodes_bfs(rootNode);
-
-    // Map for large tree
-    std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> rootNodeLargeMap = iterate_all_nodes_bfs(rootNodeLarge);
-
-	// Combine qVal
-	for (auto it = rootNodeMap.begin(); it != rootNodeMap.end(); ++it) {
-		Key key = it->first;
-		Node* node = it->second.first;
-		const DynamicVector<float>& vectorRef = it->second.second;
-
-		// Process the key, node, and vectorRef as needed
-		 //this->get_node_data()->qValues += node->get_node_data()->qValues();
-
-	}
-
-
-	for (const auto& entry : rootNodeLargeMap) {
-		Key key = entry.first;
-		Node* node = entry.second.first;
-		const DynamicVector<float>& vectorRef = entry.second.second;
-
-		// Process the key, node, and vectorRef as needed
-		//float qVal = this->get_node_data()->get_q_values();
-		//qVal += 0.5 * node->get_node_data()->get_q_values();
-	}
-
-    // check matched key
-    // This for loop has "access violation error"
-	for (auto it = rootNodeLargeMap.begin(); it != rootNodeLargeMap.end(); ++it) {
-		Key currentKey = it->first;
-
-		//mapWithMutex->mtx.lock();
-		//// Apply correct policyProbSmall according to matched key
-		//HashMap::const_iterator itt = mapWithMutex->hashTable.find(currentKey);
-		//if (itt != mapWithMutex->hashTable.end()) {
-		//	shared_ptr<Node> matchedNode = itt->second.lock();
-		//	if (matchedNode->get_node_data() != nullptr) {
-  //              return argmax(d->qValues + get_current_u_values(searchSettings, matchedNode.get()->get_policy_prob_small()));
-		//	}
-		//}
-
-		//mapWithMutex->mtx.unlock();
-
-
-	}
-
+    mapWithMutexLarge->mtx.unlock();
     return argmax(d->qValues + get_current_u_values(searchSettings));
 }
 

@@ -74,6 +74,7 @@ private:
 	bool isRunning;
 
 	MapWithMutex* mapWithMutex;
+	MapWithMutex* mapWithMutexLarge;
 	const SearchSettings* searchSettings;
 	SearchLimits* searchLimits;
 	size_t tbHits;
@@ -99,9 +100,10 @@ public:
 		 * @param netSmallBatch Network API object which provides the prediction of the small neural network
 		   @param netLargeBatch Network API object which provides the prediction of the large neural network
 		 * @param searchSettings Given settings for this search run
-		 * @param MapWithMutex Handle to the hash table
+		 * @param mapWithMutex Handle to the hash table
+		 * @param mapWithMutexLarge mutex for large tree
 		 */
-	SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex);
+	SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex, MapWithMutex* mapWithMutexLarge);
 
 	/**
 	 * @brief create_mini_batch Creates a mini-batch of new unexplored nodes.
@@ -115,6 +117,7 @@ public:
 	/**
 	 * @brief One simulation for a single node's expansion
 	 * @param rootNode root node
+	 * @param numTerminalNodes num of loops
 	*/
 	void simulation_puct(Node* rootNode, size_t &numTerminalNodes);
 

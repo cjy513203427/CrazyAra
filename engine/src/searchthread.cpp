@@ -65,11 +65,12 @@ SearchThread::SearchThread(NeuralNetAPI *netBatch, const SearchSettings* searchS
 }
 
 
-SearchThread::SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex) :
+SearchThread::SearchThread(NeuralNetAPI *netSmallBatch, NeuralNetAPI *netLargeBatch, const SearchSettings* searchSettings, MapWithMutex* mapWithMutex, MapWithMutex *mapWithMutexLarge) :
 	SearchThread(netSmallBatch, searchSettings, mapWithMutex)
 
 {
 	nnLarge = make_unique<NeuralNetAPIUser>(netLargeBatch);
+	this->mapWithMutexLarge = mapWithMutexLarge;
 }
 
 
@@ -211,7 +212,7 @@ Node* SearchThread::get_new_child_to_evaluate(NodeDescription& description, Node
 		currentNode->lock();
 		if (childIdx == uint16_t(-1)) {
 			// TODO check if this rootNodeLarge, otherwise excute normal logic
-			childIdx = currentNode->select_child_node(searchSettings, rootNode, rootNodeLarge);
+			childIdx = currentNode->select_child_node(searchSettings, mapWithMutexLarge);
 		}
 		currentNode->apply_virtual_loss_to_child(childIdx, searchSettings);
 		trajectoryBuffer.emplace_back(NodeAndIdx(currentNode, childIdx));
@@ -601,6 +602,10 @@ void SearchThread::select_unevaluated_leafState_priority(Node* rootNode) {
 		StateObj* state = parentNode->get_state()->clone();
 		state->do_action(parentNode->get_action(childIdx));
 		shared_ptr<Node> newNode = make_shared<Node>(state, searchSettings, parentNode, childIdx);
+		weak_ptr<Node> newNodePtr = newNode;
+		mapWithMutexLarge->mtx.lock();
+		mapWithMutexLarge->hashTable.insert({ state->hash_key(), newNodePtr});
+		mapWithMutexLarge->mtx.unlock();
 		state->get_state_planes(true, inputPlanes + newNodes->size() * net->get_nb_input_values_total(), net->get_version());
 		newNodeSideToMove->add_element(state->side_to_move());
 		// connect the Node to the parent

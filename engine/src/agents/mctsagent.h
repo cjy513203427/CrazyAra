@@ -65,6 +65,7 @@ public:
     shared_ptr<Node> opponentsNextRoot;
 
     MapWithMutex mapWithMutex;
+    MapWithMutex mapWithMutexLarge;
     float lastValueEval;
     SideToMove lastSideToMove;
 
