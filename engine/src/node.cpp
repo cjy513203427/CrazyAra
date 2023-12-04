@@ -1270,9 +1270,25 @@ ChildIdx Node::select_child_node(const SearchSettings* searchSettings, MapWithMu
     mapWithMutexLarge->mtx.lock();
     HashMap::const_iterator it = mapWithMutexLarge->hashTable.find(this->hash_key());
     if (it != mapWithMutexLarge->hashTable.end()) {
-        shared_ptr<Node> largeNode = it->second.lock();
-        mapWithMutexLarge->mtx.unlock();
-        return argmax(d->qValues + get_current_u_values(searchSettings, largeNode.get()));
+       shared_ptr<Node> largeNode = it->second.lock();
+       mapWithMutexLarge->mtx.unlock();
+       
+       DynamicVector<float> qValVector(get_no_visit_idx()+1);
+
+        for (int i =0; i < get_no_visit_idx(); i++){
+            Action target = get_action(i);
+            auto it_leagal_action = std::find(largeNode->legalActions.begin(), largeNode->legalActions.end(), target);
+            if(it_leagal_action!=largeNode->legalActions.end()){
+                ChildIdx targetIdx = it_leagal_action - largeNode->legalActions.begin();
+                if(largeNode->d!=nullptr && targetIdx<=largeNode->get_no_visit_idx()){
+                    qValVector[i] = 0.5 * largeNode->get_q_value(targetIdx) + 0.5 * get_q_value(i);
+                }else{
+                    qValVector[i] = get_q_value(i);
+                }
+            }
+        }
+
+       return argmax(d->qValues + get_current_u_values(searchSettings, largeNode.get()));
     }
 
     mapWithMutexLarge->mtx.unlock();
