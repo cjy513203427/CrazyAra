@@ -1100,7 +1100,7 @@ DynamicVector<float> Node::get_current_u_values(const SearchSettings* searchSett
 #ifdef SEARCH_UCT
     return searchSettings->cpuctInit * (sqrt(log(d->visitSum)) / (d->childNumberVisits + FLT_EPSILON));
 #else
-    DynamicVector<float> policyProbSmallVector(get_no_visit_idx()+1);
+    DynamicVector<float> policyProbSmallVector(get_no_visit_idx());
     for (int i =0; i < get_no_visit_idx(); i++){
         Action target = get_action(i);
         auto it_leagal_action = std::find(largeNode->legalActions.begin(), largeNode->legalActions.end(), target);
@@ -1238,8 +1238,6 @@ std::multimap<Key, std::pair<Node*, const DynamicVector<float>&>> iterate_all_no
 
 		NodeData* curData = curNode->get_node_data();
 
-		// std::cout << "curNode->get_value_sum(): " << curNode->get_value_sum() << endl;
-
 		//if(curData == nullptr || curNode->is_sorted() == false){
 		if (curData == nullptr) {
 			continue;
@@ -1273,7 +1271,7 @@ ChildIdx Node::select_child_node(const SearchSettings* searchSettings, MapWithMu
        shared_ptr<Node> largeNode = it->second.lock();
        mapWithMutexLarge->mtx.unlock();
        
-       DynamicVector<float> qValVector(get_no_visit_idx()+1);
+       DynamicVector<float> qValVector(get_no_visit_idx());
 
         for (int i =0; i < get_no_visit_idx(); i++){
             Action target = get_action(i);
@@ -1287,8 +1285,7 @@ ChildIdx Node::select_child_node(const SearchSettings* searchSettings, MapWithMu
                 }
             }
         }
-
-       return argmax(d->qValues + get_current_u_values(searchSettings, largeNode.get()));
+        return argmax(qValVector + get_current_u_values(searchSettings, largeNode.get()));
     }
 
     mapWithMutexLarge->mtx.unlock();
